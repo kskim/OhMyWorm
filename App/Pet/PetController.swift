@@ -173,6 +173,7 @@ final class PetController: NSObject {
         if frame % 40 == 1 {
             model.vitals = sampler.sample()
         }
+        model.cursor = NSEvent.mouseLocation
         model.update(dt: Self.tickInterval, limits: limits)
         movePanel()
     }

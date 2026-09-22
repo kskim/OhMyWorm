@@ -168,6 +168,24 @@ final class PetModelTests: XCTestCase {
         XCTAssertLessThan(awayFromWall.step(wallInputs).turn, 0)
     }
 
+    func testBrainTurnsAwayFromCursor() {
+        var brain = MiniBrain()
+        var inputs = [Double](repeating: 0, count: MiniBrain.Sensor.count)
+        inputs[MiniBrain.Sensor.cursorLeft.rawValue] = 1
+        XCTAssertLessThan(brain.step(inputs).turn, 0)
+    }
+
+    func testWormFleesFromNearbyCursor() {
+        var (model, limits) = makeModel()
+        model.cursor = CGPoint(x: model.head.x + 40, y: model.head.y + 120)
+        let startDist = hypot(model.cursor!.x - model.head.x, model.cursor!.y - model.head.y)
+        for _ in 0..<120 {
+            model.update(dt: 1.0 / 30.0, limits: limits)
+        }
+        let endDist = hypot(model.cursor!.x - model.head.x, model.cursor!.y - model.head.y)
+        XCTAssertGreaterThan(endDist, startDist + 40)
+    }
+
     func testMiniBrainWorksThroughProtocol() {
         var engine: any LocomotionEngine = MiniBrain()
         let inputs = [Double](repeating: 0, count: MiniBrain.Sensor.count)
@@ -415,6 +433,35 @@ final class PetModelTests: XCTestCase {
         XCTAssertLessThan(positive, 0.8)
         XCTAssertGreaterThan(negative, -0.8)
         XCTAssertLessThan(negative, -0.4)
+    }
+
+    func testKlinotaxisThreatFlees() {
+        let params = KlinotaxisParameters()
+        func meanDrive(threatLateral: Double) -> Double {
+            var controller = KlinotaxisController()
+            var sum = 0.0
+            for n in 0..<60 {
+                let drive = controller.step(concentration: 0, proximity: 0, lateral: 0, edgeLateral: 0,
+                                            threatLateral: threatLateral, params: params)
+                if n >= 20 { sum += drive.dorsal }
+            }
+            return sum / 40
+        }
+        // Threat on the left drives a right turn (negative dorsal).
+        XCTAssertLessThan(meanDrive(threatLateral: 0.6), -0.8)
+        XCTAssertGreaterThan(meanDrive(threatLateral: -0.6), 0.8)
+    }
+
+    func testRealFleesFromNearbyCursor() throws {
+        let graph = try realGraph()
+        var (model, limits) = makeModel(engine: .real(try RealBrain(graph: graph)))
+        model.cursor = CGPoint(x: model.head.x + 40, y: model.head.y + 120)
+        let startDist = hypot(model.cursor!.x - model.head.x, model.cursor!.y - model.head.y)
+        for _ in 0..<200 {
+            model.update(dt: 1.0 / 20.0, limits: limits)
+        }
+        let endDist = hypot(model.cursor!.x - model.head.x, model.cursor!.y - model.head.y)
+        XCTAssertGreaterThan(endDist, startDist + 40)
     }
 
     func testRealFindsFoodLeftAndRight() throws {

@@ -21,7 +21,7 @@ enum EngineID: String, CaseIterable, Identifiable, Sendable {
     }
 }
 
-/// Anything that turns the 11-element sensor vector (MiniBrain.Sensor order)
+/// Anything that turns the 13-element sensor vector (MiniBrain.Sensor order)
 /// into locomotion. Returns turn in [-1, 1] (positive = left/CCW) and
 /// speed in [0, 1].
 protocol LocomotionEngine: Sendable {

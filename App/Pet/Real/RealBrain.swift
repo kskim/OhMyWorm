@@ -23,7 +23,7 @@ enum RealDataLoader {
 /// and real edges; everything below the REAL DATA line is a MODEL choice:
 ///
 /// - Sensor mapping: food channels stimulate ASE/AWC taste neurons,
-///   wall channels stimulate ALM/PLM touch neurons. Edge channels do NOT
+///   wall and cursor channels stimulate ALM/PLM touch neurons. Edge channels do NOT
 ///   touch the network (measured: they steer inward); edge preference is
 ///   an explicit tropism drive. Hunger scales sensory gains (0.6 + 0.8 *
 ///   hunger). CPG channels are dropped; the real network has its own
@@ -31,7 +31,8 @@ enum RealDataLoader {
 ///   that steering overpowers.
 /// - Steering is weathervane (klinotaxis): KlinotaxisController correlates
 ///   the ASE concentration derivative with head-swing velocity and writes
-///   the bias into dorsal/ventral SMB+RMD head-motor neurons. Single-point
+///   the bias into dorsal/ventral SMB+RMD head-motor neurons, plus explicit
+///   food/edge/cursor drives (the touch path alone is too weak). Single-point
 ///   concentration only, like the real animal. SMD is excluded: its drive
 ///   inverts at mid-amplitude in this rate port (measured). ASE concentration
 ///   also inhibits B-class forward pools so the worm dwells near food.
@@ -120,11 +121,13 @@ struct RealBrain: LocomotionEngine {
         let foodProximity = inputs[MiniBrain.Sensor.foodProximity.rawValue]
         stimulate(foodLeft, inputs[MiniBrain.Sensor.foodLeft.rawValue] + 0.5 * foodProximity)
         stimulate(foodRight, inputs[MiniBrain.Sensor.foodRight.rawValue] + 0.5 * foodProximity)
-        // Touch: wall only. Wall stimulus avoids correctly through the D/V
+        // Touch: wall and cursor. Wall stimulus avoids correctly through the D/V
         // readout (measured +/-0.03); edge stimulus steers inward (measured),
         // so edge preference is an explicit tropism drive, not touch.
         stimulate(touchLeft, inputs[MiniBrain.Sensor.wallLeft.rawValue])
         stimulate(touchRight, inputs[MiniBrain.Sensor.wallRight.rawValue])
+        stimulate(touchLeft, inputs[MiniBrain.Sensor.cursorLeft.rawValue])
+        stimulate(touchRight, inputs[MiniBrain.Sensor.cursorRight.rawValue])
         // Motor write: bypasses hunger-scaled stimulate(); this is a
         // steering command, not a sensory gain.
         for index in dorsalHead { sensory[index] += pendingDrive.dorsal }
@@ -138,8 +141,10 @@ struct RealBrain: LocomotionEngine {
         let concentration = mean(activity, taste)
         let lateral = inputs[MiniBrain.Sensor.foodLeft.rawValue] - inputs[MiniBrain.Sensor.foodRight.rawValue]
         let edgeLateral = inputs[MiniBrain.Sensor.edgeLeft.rawValue] - inputs[MiniBrain.Sensor.edgeRight.rawValue]
+        let threatLateral = inputs[MiniBrain.Sensor.cursorLeft.rawValue] - inputs[MiniBrain.Sensor.cursorRight.rawValue]
         pendingDrive = klinotaxis.step(concentration: concentration, proximity: foodProximity,
-                                       lateral: lateral, edgeLateral: edgeLateral, params: klinoParams)
+                                       lateral: lateral, edgeLateral: edgeLateral,
+                                       threatLateral: threatLateral, params: klinoParams)
         pendingDwell = -min(klinoParams.dwellGain * concentration, klinoParams.dwellCap)
         muscles.step(activity: activity)
         return (

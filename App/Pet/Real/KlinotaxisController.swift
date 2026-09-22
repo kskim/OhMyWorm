@@ -38,6 +38,11 @@ struct KlinotaxisParameters: Sendable {
     /// without food nearby; the network touch path steers inward, so
     /// edge preference is explicit (MODEL). 1.0 dwells at edges ~75%.
     var edgeGain = 1.0
+    /// Aversive drive on the lateral cursor (threat) signal. Always on:
+    /// fleeing overrides foraging. MODEL: the rate-port touch path moves
+    /// the bend only +/-0.03 (measured), too weak to escape, so the threat
+    /// writes directly like the food/edge tropisms.
+    var threatGain = 2.0
     /// Pirouette kick strength (turn units) when food sits behind.
     var pirouetteTurn = 1.0
     /// Pirouette kick length in ticks.
@@ -54,15 +59,17 @@ struct KlinotaxisParameters: Sendable {
 /// (no swing-cycle lag, tracks the fast-spinning close-in bearing) while
 /// klinotaxis modulates far-field runs. Food directly behind (close, no
 /// lateral signal, concentration falling) triggers an alternating-side
-/// pirouette kick (klinokinesis-lite). All three write into dorsal/ventral
+/// pirouette kick (klinokinesis-lite). A nearby cursor adds an aversive
+/// drive that turns away from it. All four write into dorsal/ventral
 /// SMB+RMD head-motor neurons.
 ///
 /// MODEL: the rate port cannot express temporal computation (nothing past
-/// the sensory layer lateralizes), so correlation, handoff and pirouettes
-/// live here while execution flows through real neurons, real NMJs and
-/// real muscles. Klinotaxis uses single-point concentration only, like the
-/// real animal; tropism and pirouettes read the spatial sensors.
-/// Food appear/disappear steps exceed maxStep and skip the correlation.
+/// the sensory layer lateralizes), so correlation, handoff, pirouettes and
+/// threat escape live here while execution flows through real neurons,
+/// real NMJs and real muscles. Klinotaxis uses single-point concentration
+/// only, like the real animal; tropism, pirouettes and threat read the
+/// spatial sensors. Food appear/disappear steps exceed maxStep and skip
+/// the correlation.
 struct KlinotaxisController: Sendable {
     /// Assumed brain tick rate. RealBrain already assumes 1/20 s ticks.
     static let ticksPerSecond = 20.0
@@ -84,7 +91,7 @@ struct KlinotaxisController: Sendable {
 
     /// Advance one tick. Returns dorsal/ventral head-motor drive.
     mutating func step(concentration: Double, proximity: Double, lateral: Double, edgeLateral: Double,
-                      params: KlinotaxisParameters) -> (dorsal: Double, ventral: Double) {
+                      threatLateral: Double = 0, params: KlinotaxisParameters) -> (dorsal: Double, ventral: Double) {
         phase += 2 * .pi * params.frequencyHz / Self.ticksPerSecond
         if phase >= 2 * .pi { phase -= 2 * .pi }
         // First tick seeds the baselines (no food-at-start spike). The first
@@ -124,6 +131,7 @@ struct KlinotaxisController: Sendable {
                 drive = (1 - w) * params.klinoWeight * bias
                     + w * params.tropismGain * lateral
                     + edgeGate * params.edgeGain * edgeLateral
+                    - params.threatGain * threatLateral
                     + params.weaveAmp * sin(phase)
             }
         }

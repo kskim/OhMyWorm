@@ -3,7 +3,7 @@ import Foundation
 /// A hand-wired miniature recurrent rate network that drives locomotion.
 /// This is a game model, NOT the real C. elegans connectome.
 ///
-/// - 11 sensory inputs (see ``Sensor``)
+/// - 13 sensory inputs (see ``Sensor``)
 /// - 6 recurrent tanh hidden units (food / edge / wall / drive / oscillator pair)
 /// - 2 outputs: turn rate in [-1, 1] and speed in [0, 1]
 struct MiniBrain: LocomotionEngine {
@@ -13,22 +13,23 @@ struct MiniBrain: LocomotionEngine {
         case wallLeft, wallRight, wallNear
         case hunger
         case cpg1, cpg2
+        case cursorLeft, cursorRight
 
-        static let count = 11
+        static let count = 13
     }
 
     static let hiddenCount = 6
 
     /// Rows: hidden units h0..h5. Columns: Sensor order.
-    /// h0 food steering, h1 edge steering, h2 wall avoidance,
+    /// h0 food steering, h1 edge steering, h2 wall/cursor avoidance,
     /// h3 approach drive, h4/h5 exploratory oscillator pair.
     static let inputWeights: [[Double]] = [
-        [1.5, -1.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 1.2, -1.2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 0.0, 0.0, 2.0, -2.0, 0.0, 0.0, 0.0, 0.0],
-        [0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.8, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.6, 0.0],
-        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.6],
+        [1.5, -1.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 1.2, -1.2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 0.0, 0.0, 2.0, -2.0, 0.0, 0.0, 0.0, 0.0, 2.0, -2.0],
+        [0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.8, 0.0, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.6, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.6, 0.0, 0.0],
     ]
 
     /// Recurrent weights: rows/cols are hidden units h0..h5.

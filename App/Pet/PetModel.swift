@@ -91,6 +91,7 @@ struct PetModel: Sendable {
     var satiety: Double = 80
     var mood: Double = 80
     var food: Food? = nil
+    var cursor: CGPoint? = nil
     var eatTimer: Double = 0
     var petTimer: Double = 0
     var carried: Bool = false
@@ -298,6 +299,14 @@ struct PetModel: Sendable {
             let lateral = wallNear * max(0, cos(wallAngle))
             inputs[MiniBrain.Sensor.wallLeft.rawValue] = max(0, sin(wallAngle)) * lateral
             inputs[MiniBrain.Sensor.wallRight.rawValue] = max(0, -sin(wallAngle)) * lateral
+        }
+
+        if let cursor {
+            let dist = distance(head, cursor)
+            let angle = atan2(cursor.y - head.y, cursor.x - head.x) - heading
+            let proximity = max(0, 1 - dist / 200)
+            inputs[MiniBrain.Sensor.cursorLeft.rawValue] = max(0, sin(angle)) * proximity
+            inputs[MiniBrain.Sensor.cursorRight.rawValue] = max(0, -sin(angle)) * proximity
         }
 
         inputs[MiniBrain.Sensor.hunger.rawValue] = 1 - satiety / 100
