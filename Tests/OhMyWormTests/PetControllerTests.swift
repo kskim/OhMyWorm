@@ -70,6 +70,25 @@ final class PetControllerTests: XCTestCase {
         }
     }
 
+    func testSetEngineSwitchesAndPersists() {
+        guard let controller = makeController() else { return }
+        let previous = UserDefaults.standard.string(forKey: "worm.engine")
+        defer {
+            if let previous {
+                UserDefaults.standard.set(previous, forKey: "worm.engine")
+            } else {
+                UserDefaults.standard.removeObject(forKey: "worm.engine")
+            }
+        }
+        for id in EngineID.allCases {
+            let item = NSMenuItem()
+            item.representedObject = id.rawValue
+            controller.setEngine(item)
+            XCTAssertEqual(controller.model.brain.id, id)
+            XCTAssertEqual(UserDefaults.standard.string(forKey: "worm.engine"), id.rawValue)
+        }
+    }
+
     func testStatusTextReflectsModel() {
         guard let controller = makeController() else { return }
         controller.model.satiety = 72
