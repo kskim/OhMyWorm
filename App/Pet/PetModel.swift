@@ -38,7 +38,7 @@ struct PetModel: Sendable {
         var baseSpeed: CGFloat = 62
         var turnRate: Double = 3.2
         var edgeMargin: CGFloat = 130
-        var wallMargin: CGFloat = 30
+        var wallMargin: CGFloat = 0
     }
 
     struct Particle: Sendable {
@@ -225,7 +225,7 @@ struct PetModel: Sendable {
         } else {
             wallPoint = CGPoint(x: head.x, y: bounds.maxY)
         }
-        let wallRange = limits.wallMargin * 2.5
+        let wallRange = max(limits.wallMargin * 2.5, 1)
         let wallNear = max(0, 1 - wallDist / wallRange)
         inputs[MiniBrain.Sensor.wallNear.rawValue] = wallNear
         if wallNear > 0 {

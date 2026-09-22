@@ -30,7 +30,7 @@ final class PetController: NSObject {
 
     init(screen: NSScreen) {
         self.screen = screen
-        let bounds = screen.visibleFrame.insetBy(dx: 10, dy: 10)
+        let bounds = screen.visibleFrame
         self.limits = PetModel.Limits(bounds: bounds)
         let savedSkin = UserDefaults.standard.string(forKey: Self.skinKey)
             .flatMap(WormSkin.init(rawValue:)) ?? .classic
