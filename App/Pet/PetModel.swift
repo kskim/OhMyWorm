@@ -24,6 +24,16 @@ enum WormSkin: String, CaseIterable, Identifiable, Sendable {
         let index = all.firstIndex(of: self) ?? 0
         return all[(index + 1) % all.count]
     }
+
+    /// Body length in segments. Part of each skin's identity.
+    var segments: Int {
+        switch self {
+        case .classic: return 16
+        case .berry: return 14
+        case .honey: return 12
+        case .ghost: return 20
+        }
+    }
 }
 
 // MARK: - Model
