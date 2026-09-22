@@ -15,7 +15,7 @@ final class PetControllerTests: XCTestCase {
             XCTFail("dropFood must place food")
             return
         }
-        XCTAssertTrue(controller.limits.bounds.contains(food))
+        XCTAssertTrue(controller.limits.bounds.contains(food.position))
     }
 
     func testSetSkinPersistsSelection() {
@@ -50,7 +50,7 @@ final class PetControllerTests: XCTestCase {
         let rect = controller.contentRect()
         XCTAssertTrue(rect.contains(controller.model.head))
         if let food = controller.model.food {
-            XCTAssertTrue(rect.contains(food))
+            XCTAssertTrue(rect.contains(food.position))
         } else {
             XCTFail("dropFood must place food")
         }

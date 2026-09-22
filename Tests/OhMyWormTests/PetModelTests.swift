@@ -60,6 +60,22 @@ final class PetModelTests: XCTestCase {
         XCTAssertGreaterThan(model.satiety, 50)
     }
 
+    func testStarvingAutoDropsFood() {
+        var (model, limits) = makeModel()
+        model.satiety = 0
+        model.update(dt: 1.0 / 30.0, limits: limits)
+        guard let food = model.food else {
+            XCTFail("starving worm must get food")
+            return
+        }
+        XCTAssertTrue(limits.bounds.contains(food.position))
+    }
+
+    func testFoodKindsAreFiveDistinctFruits() {
+        XCTAssertEqual(FoodKind.allCases.count, 5)
+        XCTAssertEqual(Set(FoodKind.allCases.map(\.emoji)).count, 5)
+    }
+
     func testStatsDecayOverTime() {
         var (model, limits) = makeModel()
         let satiety = model.satiety

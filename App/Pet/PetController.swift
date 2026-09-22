@@ -126,27 +126,7 @@ final class PetController: NSObject {
     // MARK: - Menu actions
 
     @objc func dropFood() {
-        // Drop near the worm so it stays visible and reachable.
-        let angle = Double.random(in: 0 ..< 2 * Double.pi)
-        let dist = CGFloat.random(in: 120...220)
-        var point = CGPoint(
-            x: model.head.x + cos(angle) * dist,
-            y: model.head.y + sin(angle) * dist
-        )
-        // Nudge toward the nearest edge, matching the worm's preference.
-        let bounds = limits.bounds
-        let dxMin = point.x - bounds.minX
-        let dxMax = bounds.maxX - point.x
-        let dyMin = point.y - bounds.minY
-        let dyMax = bounds.maxY - point.y
-        let nearest = min(dxMin, dxMax, dyMin, dyMax)
-        if nearest == dxMin { point.x -= 60 } else if nearest == dxMax { point.x += 60 }
-        else if nearest == dyMin { point.y -= 60 } else { point.y += 60 }
-        let inset = bounds.insetBy(dx: 40, dy: 40)
-        point.x = min(max(point.x, inset.minX), inset.maxX)
-        point.y = min(max(point.y, inset.minY), inset.maxY)
-        model.dropFood(at: point)
-        movePanel()
+        model.dropFoodNearHead(limits: limits)
     }
 
     @objc func setSkin(_ sender: NSMenuItem) {

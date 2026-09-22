@@ -36,6 +36,27 @@ enum WormSkin: String, CaseIterable, Identifiable, Sendable {
     }
 }
 
+// MARK: - Food
+
+enum FoodKind: String, CaseIterable, Sendable {
+    case apple, banana, orange, grape, melon
+
+    var emoji: String {
+        switch self {
+        case .apple: return "🍎"
+        case .banana: return "🍌"
+        case .orange: return "🍊"
+        case .grape: return "🍇"
+        case .melon: return "🍉"
+        }
+    }
+}
+
+struct Food: Sendable {
+    var position: CGPoint
+    var kind: FoodKind
+}
+
 // MARK: - Model
 
 /// Pure game state. UI-free so unit tests can drive it directly.
@@ -69,7 +90,7 @@ struct PetModel: Sendable {
     var trail: [CGPoint] = []
     var satiety: Double = 80
     var mood: Double = 80
-    var food: CGPoint? = nil
+    var food: Food? = nil
     var eatTimer: Double = 0
     var petTimer: Double = 0
     var carried: Bool = false
@@ -113,6 +134,9 @@ struct PetModel: Sendable {
         mood = max(0, mood - dt * (100.0 / Self.moodFullSeconds))
         if eatTimer > 0 { eatTimer = max(0, eatTimer - dt) }
         if petTimer > 0 { petTimer = max(0, petTimer - dt) }
+        if satiety <= 0, food == nil, !carried, !isEating {
+            dropFoodNearHead(limits: limits)
+        }
 
         if carried {
             moveCarried(dt: dt, limits: limits)
@@ -129,7 +153,30 @@ struct PetModel: Sendable {
     // MARK: Actions
 
     mutating func dropFood(at point: CGPoint) {
-        food = point
+        food = Food(position: point, kind: FoodKind.allCases.randomElement() ?? .apple)
+    }
+
+    /// Drops a random fruit near the head, nudged toward the nearest edge
+    /// to match the worm's preference.
+    mutating func dropFoodNearHead(limits: Limits) {
+        let angle = Double.random(in: 0 ..< 2 * Double.pi)
+        let dist = CGFloat.random(in: 120...220)
+        var point = CGPoint(
+            x: head.x + cos(angle) * dist,
+            y: head.y + sin(angle) * dist
+        )
+        let bounds = limits.bounds
+        let dxMin = point.x - bounds.minX
+        let dxMax = bounds.maxX - point.x
+        let dyMin = point.y - bounds.minY
+        let dyMax = bounds.maxY - point.y
+        let nearest = min(dxMin, dxMax, dyMin, dyMax)
+        if nearest == dxMin { point.x -= 60 } else if nearest == dxMax { point.x += 60 }
+        else if nearest == dyMin { point.y -= 60 } else { point.y += 60 }
+        let inset = bounds.insetBy(dx: 40, dy: 40)
+        point.x = min(max(point.x, inset.minX), inset.maxX)
+        point.y = min(max(point.y, inset.minY), inset.maxY)
+        dropFood(at: point)
     }
 
     mutating func pet() {
@@ -198,9 +245,9 @@ struct PetModel: Sendable {
         let bounds = limits.bounds
         var inputs = [Double](repeating: 0, count: MiniBrain.Sensor.count)
 
-        if let food {
-            let dist = distance(head, food)
-            let angle = atan2(food.y - head.y, food.x - head.x) - heading
+        if let foodPosition = food?.position {
+            let dist = distance(head, foodPosition)
+            let angle = atan2(foodPosition.y - head.y, foodPosition.x - head.x) - heading
             let proximity = max(0, 1 - dist / 500)
             inputs[MiniBrain.Sensor.foodProximity.rawValue] = proximity
             inputs[MiniBrain.Sensor.foodLeft.rawValue] = max(0, sin(angle)) * proximity
@@ -260,7 +307,7 @@ struct PetModel: Sendable {
     }
 
     private mutating func neuralDrive(dt: Double, limits: Limits) {
-        if let food, distance(head, food) < 26 {
+        if let foodPosition = food?.position, distance(head, foodPosition) < 26 {
             self.food = nil
             eatTimer = Self.eatDuration
             satiety = min(100, satiety + 38)

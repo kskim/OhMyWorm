@@ -23,7 +23,7 @@ struct WormView: View {
     private func draw(context: inout GraphicsContext, size: CGSize) {
         let model = controller.model
         if let food = model.food {
-            drawFood(at: convert(food, size: size), context: &context)
+            drawFood(kind: food.kind, at: convert(food.position, size: size), context: &context)
         }
         drawWorm(model: model, size: size, context: &context)
         drawParticles(model: model, size: size, context: &context)
@@ -35,8 +35,8 @@ struct WormView: View {
         }
     }
 
-    private func drawFood(at point: CGPoint, context: inout GraphicsContext) {
-        context.draw(Text("🍎").font(.system(size: 22)), at: point)
+    private func drawFood(kind: FoodKind, at point: CGPoint, context: inout GraphicsContext) {
+        context.draw(Text(kind.emoji).font(.system(size: 22)), at: point)
     }
 
     private static let bodyScale = 0.64
