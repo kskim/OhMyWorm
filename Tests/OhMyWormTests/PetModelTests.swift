@@ -117,6 +117,34 @@ final class PetModelTests: XCTestCase {
         XCTAssertEqual(run(), run())
     }
 
+    func testSpeedMultiplierRisesWithCPU() {
+        var (model, _) = makeModel()
+        model.vitals = SystemVitals(cpuLoad: 0, batteryLevel: nil, onBatteryPower: false)
+        let idle = model.speedMultiplier
+        model.vitals.cpuLoad = 1
+        XCTAssertGreaterThan(model.speedMultiplier, idle)
+    }
+
+    func testOnBatterySlowerThanCharging() {
+        var (model, _) = makeModel()
+        model.vitals = SystemVitals(cpuLoad: 0.5, batteryLevel: 0.5, onBatteryPower: false)
+        let charging = model.speedMultiplier
+        model.vitals.onBatteryPower = true
+        XCTAssertLessThan(model.speedMultiplier, charging)
+    }
+
+    func testSizeScaleFollowsBattery() {
+        var (model, _) = makeModel()
+        model.vitals.batteryLevel = nil
+        XCTAssertEqual(model.sizeScale, 1.0)
+        model.vitals.batteryLevel = 1.0
+        XCTAssertEqual(model.sizeScale, 1.0)
+        model.vitals.batteryLevel = 0.0
+        XCTAssertEqual(model.sizeScale, 0.7, accuracy: 0.001)
+        model.vitals.batteryLevel = 0.5
+        XCTAssertEqual(model.sizeScale, 0.85, accuracy: 0.001)
+    }
+
     func testSkinCyclesThroughAllCases() {
         var seen: Set<WormSkin> = []
         var skin = WormSkin.classic

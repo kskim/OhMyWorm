@@ -25,6 +25,8 @@ final class PetController: NSObject {
     private var panel: DesktopPanel?
     private var timer: Timer?
     private var monitors: [Any] = []
+    private var sampler = VitalsSampler()
+    private var frame = 0
 
     init(screen: NSScreen) {
         self.screen = screen
@@ -46,6 +48,7 @@ final class PetController: NSObject {
 
     func start() {
         stop()
+        model.vitals = sampler.sample()
         let timer = Timer.scheduledTimer(withTimeInterval: Self.tickInterval, repeats: true, block: { [weak self] _ in
             Task { @MainActor [weak self] in self?.tick() }
         })
@@ -147,6 +150,10 @@ final class PetController: NSObject {
 
     private func tick() {
         guard !paused else { return }
+        frame += 1
+        if frame % 40 == 1 {
+            model.vitals = sampler.sample()
+        }
         model.update(dt: Self.tickInterval, limits: limits)
         movePanel()
     }

@@ -41,18 +41,19 @@ struct WormView: View {
     }
 
     private func drawWorm(model: PetModel, size: CGSize, context: inout GraphicsContext) {
-        let points = model.bodyPoints(spacing: 6.4).map { convert($0, size: size) }
+        let s = CGFloat(model.sizeScale)
+        let points = model.bodyPoints(spacing: 6.4 * s).map { convert($0, size: size) }
         let colors = model.skin.colors
         for index in points.indices.reversed() {
             let t = Double(index) / Double(max(points.count - 1, 1))
-            let radius = (9 - 3.5 * t) * 0.8
+            let radius = (9 - 3.5 * t) * 0.8 * s
             var center = points[index]
             if index + 1 < points.count {
                 let next = points[index + 1]
                 let dx = center.x - next.x
                 let dy = center.y - next.y
                 let len = max((dx * dx + dy * dy).squareRoot(), 0.001)
-                let sway = sin(model.wigglePhase - Double(index) * 0.55) * (1.3 + Double(index) * 0.18)
+                let sway = sin(model.wigglePhase - Double(index) * 0.55) * (1.3 + Double(index) * 0.18) * s
                 center.x += -dy / len * sway
                 center.y += dx / len * sway
             }
@@ -63,33 +64,35 @@ struct WormView: View {
     }
 
     private func drawFace(head: CGPoint, model: PetModel, size: CGSize, context: inout GraphicsContext) {
+        let s = CGFloat(model.sizeScale)
         let heading = -model.heading
         let forward = CGVector(dx: cos(heading), dy: sin(heading))
         let side = CGVector(dx: -forward.dy, dy: forward.dx)
         for sign in [-1.0, 1.0] {
             let eye = CGPoint(
-                x: head.x + forward.dx * 4.8 + side.dx * 4.4 * sign,
-                y: head.y + forward.dy * 4.8 + side.dy * 4.4 * sign
+                x: head.x + forward.dx * 4.8 * s + side.dx * 4.4 * s * sign,
+                y: head.y + forward.dy * 4.8 * s + side.dy * 4.4 * s * sign
             )
-            context.fill(Circle().path(in: CGRect(x: eye.x - 2.6, y: eye.y - 2.6, width: 5.2, height: 5.2)), with: .color(.white))
-            let pupil = CGPoint(x: eye.x + forward.dx * 1.0, y: eye.y + forward.dy * 1.0)
-            context.fill(Circle().path(in: CGRect(x: pupil.x - 1.3, y: pupil.y - 1.3, width: 2.6, height: 2.6)), with: .color(.black))
+            context.fill(Circle().path(in: CGRect(x: eye.x - 2.6 * s, y: eye.y - 2.6 * s, width: 5.2 * s, height: 5.2 * s)), with: .color(.white))
+            let pupil = CGPoint(x: eye.x + forward.dx * 1.0 * s, y: eye.y + forward.dy * 1.0 * s)
+            context.fill(Circle().path(in: CGRect(x: pupil.x - 1.3 * s, y: pupil.y - 1.3 * s, width: 2.6 * s, height: 2.6 * s)), with: .color(.black))
         }
-        let mouth = CGPoint(x: head.x + forward.dx * 8, y: head.y + forward.dy * 8)
+        let mouth = CGPoint(x: head.x + forward.dx * 8 * s, y: head.y + forward.dy * 8 * s)
         if model.isEating {
-            context.fill(Circle().path(in: CGRect(x: mouth.x - 1.6, y: mouth.y - 1.6, width: 3.2, height: 3.2)), with: .color(.black.opacity(0.7)))
+            context.fill(Circle().path(in: CGRect(x: mouth.x - 1.6 * s, y: mouth.y - 1.6 * s, width: 3.2 * s, height: 3.2 * s)), with: .color(.black.opacity(0.7)))
         } else if model.mood >= 50 || model.isPetted {
             var path = Path()
-            path.move(to: CGPoint(x: mouth.x - 2.8, y: mouth.y - 1))
+            path.move(to: CGPoint(x: mouth.x - 2.8 * s, y: mouth.y - s))
             path.addQuadCurve(
-                to: CGPoint(x: mouth.x + 2.8, y: mouth.y - 1),
-                control: CGPoint(x: mouth.x, y: mouth.y + 2.8)
+                to: CGPoint(x: mouth.x + 2.8 * s, y: mouth.y - s),
+                control: CGPoint(x: mouth.x, y: mouth.y + 2.8 * s)
             )
             context.stroke(path, with: .color(.black.opacity(0.7)), lineWidth: 1.4)
         }
     }
 
     private func drawParticles(model: PetModel, size: CGSize, context: inout GraphicsContext) {
+        let s = CGFloat(model.sizeScale)
         for particle in model.particles where particle.age >= 0 {
             let point = convert(particle.position, size: size)
             switch particle.kind {
@@ -97,13 +100,13 @@ struct WormView: View {
                 let alpha = max(0, 1 - particle.age / 1.3)
                 context.opacity = alpha
                 context.draw(
-                    Text("❤️").font(.system(size: 15)),
+                    Text("❤️").font(.system(size: 15 * s)),
                     at: CGPoint(x: point.x, y: point.y - particle.age * 34)
                 )
                 context.opacity = 1
             case .crumb:
                 let alpha = max(0, 1 - particle.age / 1.0)
-                let rect = CGRect(x: point.x - 2.5, y: point.y - 2.5, width: 5, height: 5)
+                let rect = CGRect(x: point.x - 2.5 * s, y: point.y - 2.5 * s, width: 5 * s, height: 5 * s)
                 context.fill(Circle().path(in: rect), with: .color(.brown.opacity(alpha)))
             }
         }

@@ -68,12 +68,26 @@ struct PetModel: Sendable {
     var wigglePhase: Double = 0
     var particles: [Particle] = []
     var skin: WormSkin = .classic
+    var vitals = SystemVitals()
 
     var isEating: Bool { eatTimer > 0 }
     var isPetted: Bool { petTimer > 0 }
 
     var statusText: String {
         "포만감 \(Int(satiety)) · 기분 \(Int(mood))"
+    }
+
+    /// Neuromodulation from system state, RunCat-style: busy CPU speeds
+    /// the worm up, running on battery slows it down.
+    var speedMultiplier: Double {
+        let cpu = min(max(vitals.cpuLoad, 0), 1)
+        return (0.6 + 1.4 * cpu) * (vitals.onBatteryPower ? 0.75 : 1.0)
+    }
+
+    /// Body scale from battery level. Macs without a battery stay full size.
+    var sizeScale: Double {
+        guard let level = vitals.batteryLevel else { return 1.0 }
+        return 0.7 + 0.3 * min(max(level, 0), 1)
     }
 
     // MARK: Update
@@ -154,9 +168,10 @@ struct PetModel: Sendable {
     }
 
     func hitTest(_ point: CGPoint, radius: CGFloat = 21) -> Bool {
-        if distance(head, point) <= radius { return true }
+        let effective = radius * CGFloat(sizeScale)
+        if distance(head, point) <= effective { return true }
         for anchor in trail.stride(by: 3) {
-            if distance(anchor, point) <= radius { return true }
+            if distance(anchor, point) <= effective { return true }
         }
         return false
     }
@@ -245,6 +260,7 @@ struct PetModel: Sendable {
         var speed = limits.baseSpeed * CGFloat(0.35 + 0.9 * output.speed)
         if mood < 30 { speed *= 0.85 }
         if isPetted { speed *= 1.25 }
+        speed *= CGFloat(speedMultiplier)
         advance(speed: speed, dt: dt, limits: limits)
     }
 

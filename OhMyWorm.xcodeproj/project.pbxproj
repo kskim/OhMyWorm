@@ -12,6 +12,7 @@
 		B00000000000000000000005 = {isa = PBXBuildFile; fileRef = F00000000000000000000005; };
 		B00000000000000000000006 = {isa = PBXBuildFile; fileRef = F00000000000000000000006; };
 		B00000000000000000000007 = {isa = PBXBuildFile; fileRef = F00000000000000000000007; };
+		B0000000000000000000000A = {isa = PBXBuildFile; fileRef = F0000000000000000000000C; };
 		B00000000000000000000008 = {isa = PBXBuildFile; fileRef = F00000000000000000000008; };
 		B00000000000000000000009 = {isa = PBXBuildFile; fileRef = F0000000000000000000000B; };
 /* End PBXBuildFile section */
@@ -26,6 +27,7 @@
 		F00000000000000000000005 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesktopPanel.swift; sourceTree = "<group>"; };
 		F00000000000000000000006 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WormView.swift; sourceTree = "<group>"; };
 		F00000000000000000000007 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PetMenu.swift; sourceTree = "<group>"; };
+		F0000000000000000000000C = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemVitals.swift; sourceTree = "<group>"; };
 		F00000000000000000000008 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OhMyWormTests/PetModelTests.swift; sourceTree = "<group>"; };
 		F0000000000000000000000B = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OhMyWormTests/PetControllerTests.swift; sourceTree = "<group>"; };
 		F00000000000000000000009 = {isa = PBXFileReference; explicitFileType = wrapper.application; path = OhMyWorm.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -38,7 +40,7 @@
 /* Begin PBXGroup section */
 		F10000000000000000000001 = {isa = PBXGroup; children = (F10000000000000000000002, F10000000000000000000004, F10000000000000000000005,); sourceTree = "<group>"; };
 		F10000000000000000000002 = {isa = PBXGroup; children = (F00000000000000000000001, F10000000000000000000003,); path = App; sourceTree = "<group>"; };
-		F10000000000000000000003 = {isa = PBXGroup; children = (F00000000000000000000002, F00000000000000000000003, F00000000000000000000004, F00000000000000000000005, F00000000000000000000006, F00000000000000000000007,); path = Pet; sourceTree = "<group>"; };
+		F10000000000000000000003 = {isa = PBXGroup; children = (F00000000000000000000002, F00000000000000000000003, F00000000000000000000004, F00000000000000000000005, F00000000000000000000006, F00000000000000000000007, F0000000000000000000000C,); path = Pet; sourceTree = "<group>"; };
 		F10000000000000000000004 = {isa = PBXGroup; children = (F00000000000000000000008, F0000000000000000000000B,); path = Tests; sourceTree = "<group>"; };
 		F10000000000000000000005 = {isa = PBXGroup; children = (F00000000000000000000009, F0000000000000000000000A,); name = Products; sourceTree = "<group>"; };
 /* End PBXGroup section */
@@ -50,7 +52,7 @@
 		E00000000000000000000001 = {isa = PBXProject; attributes = {BuildIndependentTargetsInParallel = YES; LastSwiftUpdateCheck = 1600; LastUpgradeCheck = 1600; TargetAttributes = {E00000000000000000000002 = {CreatedOnToolsVersion = 16.0; }; E00000000000000000000003 = {CreatedOnToolsVersion = 16.0; TestTargetID = E00000000000000000000002; }; }; }; buildConfigurationList = A10000000000000000000001; compatibilityVersion = "Xcode 15.0"; developmentRegion = en; hasScannedForEncodings = 0; knownRegions = (en, Base,); mainGroup = F10000000000000000000001; productRefGroup = F10000000000000000000005; projectDirPath = ""; projectRoot = ""; targets = (E00000000000000000000002, E00000000000000000000003,); };
 /* End PBXProject section */
 /* Begin PBXSourcesBuildPhase section */
-		C00000000000000000000004 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (B00000000000000000000001, B00000000000000000000002, B00000000000000000000003, B00000000000000000000004, B00000000000000000000005, B00000000000000000000006, B00000000000000000000007,); runOnlyForDeploymentPostprocessing = 0; };
+		C00000000000000000000004 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (B00000000000000000000001, B00000000000000000000002, B00000000000000000000003, B00000000000000000000004, B00000000000000000000005, B00000000000000000000006, B00000000000000000000007, B0000000000000000000000A,); runOnlyForDeploymentPostprocessing = 0; };
 		C00000000000000000000005 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (B00000000000000000000008, B00000000000000000000009,); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXSourcesBuildPhase section */
 /* Begin PBXTargetDependency section */

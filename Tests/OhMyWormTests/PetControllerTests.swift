@@ -59,6 +59,17 @@ final class PetControllerTests: XCTestCase {
         }
     }
 
+    func testSamplerReturnsSaneValues() {
+        let sampler = VitalsSampler()
+        let vitals = sampler.sample()
+        XCTAssertGreaterThanOrEqual(vitals.cpuLoad, 0)
+        XCTAssertLessThanOrEqual(vitals.cpuLoad, 1)
+        if let level = vitals.batteryLevel {
+            XCTAssertGreaterThanOrEqual(level, 0)
+            XCTAssertLessThanOrEqual(level, 1)
+        }
+    }
+
     func testStatusTextReflectsModel() {
         guard let controller = makeController() else { return }
         controller.model.satiety = 72
