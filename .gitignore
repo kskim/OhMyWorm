@@ -1,0 +1,9 @@
+# Swift, Xcode, and macOS user state
+.build/
+DerivedData/
+.DS_Store
+xcuserdata/
+*.xcuserstate
+
+# Legacy local-only data from the retired connectome pipeline
+.local-data/
