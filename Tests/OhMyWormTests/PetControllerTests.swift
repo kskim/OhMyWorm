@@ -8,6 +8,17 @@ final class PetControllerTests: XCTestCase {
         return PetController(screen: screen)
     }
 
+    func testTickKeepsFiringWhileMenuIsOpen() {
+        guard let controller = makeController() else { return }
+        controller.start()
+        defer { controller.stop() }
+        let start = controller.model.time
+        // Menu tracking runs the run loop in the event-tracking mode.
+        // (RunLoop.run(mode:before:) never fires timers here; CF does.)
+        CFRunLoopRunInMode(CFRunLoopMode(RunLoop.Mode.eventTracking.rawValue as CFString), 0.3, false)
+        XCTAssertGreaterThan(controller.model.time, start)
+    }
+
     func testDropFoodPlacesFoodInBounds() {
         guard let controller = makeController() else { return }
         controller.dropFood()

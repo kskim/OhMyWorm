@@ -66,10 +66,14 @@ final class PetController: NSObject {
     func start() {
         stop()
         model.vitals = sampler.sample()
-        let timer = Timer.scheduledTimer(withTimeInterval: Self.tickInterval, repeats: true, block: { [weak self] _ in
-            Task { @MainActor [weak self] in self?.tick() }
+        // Common modes so the worm keeps moving while the menu is open
+        // (menu tracking switches the run loop out of the default mode).
+        // Synchronous: the timer fires on the main thread, so no Task hop.
+        let timer = Timer(timeInterval: Self.tickInterval, repeats: true, block: { [weak self] _ in
+            MainActor.assumeIsolated { self?.tick() }
         })
         timer.tolerance = 0.005
+        RunLoop.main.add(timer, forMode: .common)
         self.timer = timer
         if let monitor = NSEvent.addGlobalMonitorForEvents(
             matching: [.leftMouseDown, .leftMouseDragged, .leftMouseUp],
