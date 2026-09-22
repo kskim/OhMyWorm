@@ -8,6 +8,7 @@ import SwiftUI
 final class PetController: NSObject {
     static let tickInterval = 1.0 / 20.0
     private static let skinKey = "worm.skin"
+    private static let engineKey = "worm.engine"
 
     var model: PetModel
     var limits: PetModel.Limits
@@ -27,6 +28,17 @@ final class PetController: NSObject {
     private var monitors: [Any] = []
     private var sampler = VitalsSampler()
     private var frame = 0
+    /// Cached on first Real use: only Real needs the 3 MB dataset.
+    private var realGraphCache: ConnectomeGraph?
+    private var realGraphLoaded = false
+
+    private func loadRealGraph() -> ConnectomeGraph? {
+        if !realGraphLoaded {
+            realGraphLoaded = true
+            realGraphCache = try? RealDataLoader.loadGraph()
+        }
+        return realGraphCache
+    }
 
     init(screen: NSScreen) {
         self.screen = screen
@@ -34,12 +46,20 @@ final class PetController: NSObject {
         self.limits = PetModel.Limits(bounds: bounds)
         let savedSkin = UserDefaults.standard.string(forKey: Self.skinKey)
             .flatMap(WormSkin.init(rawValue:)) ?? .classic
-        self.model = PetModel(
+        let model = PetModel(
             head: CGPoint(x: bounds.midX + 200, y: bounds.minY + 160),
             heading: 0.6,
             skin: savedSkin
         )
+        var engineID = UserDefaults.standard.string(forKey: Self.engineKey)
+            .flatMap(EngineID.init(storedValue:)) ?? .light
+        self.model = model
         super.init()
+        if engineID == .real, loadRealGraph() == nil {
+            engineID = .light
+            UserDefaults.standard.set(engineID.rawValue, forKey: Self.engineKey)
+        }
+        self.model.brain = Self.makeBrain(engineID, graph: engineID == .real ? loadRealGraph() : nil)
         let frame = contentRect()
         viewOrigin = frame.origin
         viewSize = frame.size
@@ -55,12 +75,13 @@ final class PetController: NSObject {
         timer.tolerance = 0.005
         self.timer = timer
         if let monitor = NSEvent.addGlobalMonitorForEvents(
-            matching: [.leftMouseDown, .leftMouseDragged, .leftMouseUp, .rightMouseDown]
-        ) { [weak self] event in
-            let type = event.type
-            let location = NSEvent.mouseLocation
-            Task { @MainActor [weak self] in self?.handle(type: type, at: location) }
-        } {
+            matching: [.leftMouseDown, .leftMouseDragged, .leftMouseUp, .rightMouseDown],
+            handler: { [weak self] event in
+                let type = event.type
+                let location = NSEvent.mouseLocation
+                Task { @MainActor [weak self] in self?.handle(type: type, at: location) }
+            }
+        ) {
             monitors.append(monitor)
         }
     }
@@ -74,7 +95,7 @@ final class PetController: NSObject {
 
     func refit(screen: NSScreen) {
         self.screen = screen
-        limits.bounds = screen.visibleFrame.insetBy(dx: 10, dy: 10)
+        limits.bounds = screen.visibleFrame
         let inset = limits.bounds.insetBy(dx: limits.wallMargin, dy: limits.wallMargin)
         model.head.x = min(max(model.head.x, inset.minX), inset.maxX)
         model.head.y = min(max(model.head.y, inset.minY), inset.maxY)
@@ -136,6 +157,29 @@ final class PetController: NSObject {
               let skin = WormSkin(rawValue: raw) else { return }
         model.skin = skin
         UserDefaults.standard.set(skin.rawValue, forKey: Self.skinKey)
+    }
+
+    /// Switching brains resets neural state; position and stats are kept.
+    @objc func setEngine(_ sender: NSMenuItem) {
+        guard let raw = sender.representedObject as? String,
+              let id = EngineID(rawValue: raw) else { return }
+        if id == .real, loadRealGraph() == nil { return }
+        model.brain = Self.makeBrain(id, graph: id == .real ? loadRealGraph() : nil)
+        UserDefaults.standard.set(id.rawValue, forKey: Self.engineKey)
+    }
+
+    private static func makeBrain(_ id: EngineID, graph: ConnectomeGraph?) -> Brain {
+        switch id {
+        case .light:
+            return .light(MiniBrain())
+        case .medium:
+            return .medium(MediumBrain())
+        case .real:
+            if let graph, let brain = try? RealBrain(graph: graph) {
+                return .real(brain)
+            }
+            return .light(MiniBrain())
+        }
     }
 
     @objc func togglePause() {

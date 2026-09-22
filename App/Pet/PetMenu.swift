@@ -40,6 +40,18 @@ import AppKit
         }
         skins.submenu = submenu
         menu.addItem(skins)
+
+        let engines = NSMenuItem(title: "엔진 변경", action: nil, keyEquivalent: "")
+        let engineSubmenu = NSMenu()
+        for id in EngineID.allCases {
+            let item = NSMenuItem(title: id.displayName, action: #selector(PetController.setEngine(_:)), keyEquivalent: "")
+            item.target = controller
+            item.representedObject = id.rawValue
+            item.state = (id == controller.model.brain.id) ? .on : .off
+            engineSubmenu.addItem(item)
+        }
+        engines.submenu = engineSubmenu
+        menu.addItem(engines)
         menu.addItem(.separator())
 
         let pauseTitle = controller.paused ? "계속하기" : "일시정지"

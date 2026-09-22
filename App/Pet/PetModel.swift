@@ -55,7 +55,7 @@ struct PetModel: Sendable {
 
     var head: CGPoint
     var heading: Double
-    var brain = MiniBrain()
+    var brain = Brain.light(MiniBrain())
     var trail: [CGPoint] = []
     var satiety: Double = 80
     var mood: Double = 80
@@ -77,8 +77,8 @@ struct PetModel: Sendable {
         "포만감 \(Int(satiety)) · 기분 \(Int(mood))"
     }
 
-    /// Neuromodulation from system state, RunCat-style: busy CPU speeds
-    /// the worm up, running on battery slows it down.
+    /// Neuromodulation from system state: busy CPU speeds the worm up,
+    /// running on battery slows it down.
     var speedMultiplier: Double {
         let cpu = min(max(vitals.cpuLoad, 0), 1)
         return (0.6 + 1.4 * cpu) * (vitals.onBatteryPower ? 0.75 : 1.0)

@@ -1,7 +1,7 @@
 import Foundation
 import IOKit.ps
 
-/// System state that modulates the worm, RunCat-style.
+/// System state that modulates the worm.
 /// Sampled with Mach/IOKit APIs that need no permissions or entitlements.
 struct SystemVitals: Sendable {
     /// Overall CPU load, 0...1.

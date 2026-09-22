@@ -6,7 +6,7 @@ import Foundation
 /// - 11 sensory inputs (see ``Sensor``)
 /// - 6 recurrent tanh hidden units (food / edge / wall / drive / oscillator pair)
 /// - 2 outputs: turn rate in [-1, 1] and speed in [0, 1]
-struct MiniBrain: Sendable {
+struct MiniBrain: LocomotionEngine {
     enum Sensor: Int {
         case foodLeft, foodRight, foodProximity
         case edgeLeft, edgeRight
