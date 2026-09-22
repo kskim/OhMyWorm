@@ -3,20 +3,19 @@ import Foundation
 /// Selectable locomotion brains.
 enum EngineID: String, CaseIterable, Identifiable, Sendable {
     case light
-    case medium
     case real
 
     var id: String { rawValue }
 
     init?(storedValue: String) {
         if storedValue == "hard" { self = .real; return } // renamed in 0.3
+        if storedValue == "medium" { self = .light; return } // removed in 1.1
         self.init(rawValue: storedValue)
     }
 
     var displayName: String {
         switch self {
         case .light: return "라이트"
-        case .medium: return "미디엄"
         case .real: return "리얼"
         }
     }
@@ -32,13 +31,11 @@ protocol LocomotionEngine: Sendable {
 /// The selectable brain inside ``PetModel``.
 enum Brain: Sendable {
     case light(MiniBrain)
-    case medium(MediumBrain)
     case real(RealBrain)
 
     var id: EngineID {
         switch self {
         case .light: return .light
-        case .medium: return .medium
         case .real: return .real
         }
     }
@@ -48,10 +45,6 @@ enum Brain: Sendable {
         case .light(var brain):
             let output = brain.step(inputs)
             self = .light(brain)
-            return output
-        case .medium(var brain):
-            let output = brain.step(inputs)
-            self = .medium(brain)
             return output
         case .real(var brain):
             let output = brain.step(inputs)

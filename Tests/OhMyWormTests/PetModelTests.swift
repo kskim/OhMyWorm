@@ -177,38 +177,9 @@ final class PetModelTests: XCTestCase {
         XCTAssertEqual(model.sizeScale, 0.85, accuracy: 0.001)
     }
 
-    func testMediumPrefersEdgesOverCenter() {
-        var (model, limits) = makeModel(engine: .medium(MediumBrain()))
-        let center = CGPoint(x: 720, y: 450)
-        let startDist = hypot(model.head.x - center.x, model.head.y - center.y)
-        for _ in 0..<900 {
-            model.update(dt: 1.0 / 20.0, limits: limits)
-        }
-        let endDist = hypot(model.head.x - center.x, model.head.y - center.y)
-        XCTAssertGreaterThan(endDist, startDist + 100)
-    }
-
-    func testMediumSeeksAndEatsFood() {
-        var (model, limits) = makeModel(engine: .medium(MediumBrain()))
-        model.satiety = 20
-        model.dropFood(at: CGPoint(x: 900, y: 450))
-        for _ in 0..<1200 {
-            model.update(dt: 1.0 / 20.0, limits: limits)
-            if model.food == nil { break }
-        }
-        XCTAssertNil(model.food)
-        XCTAssertGreaterThan(model.satiety, 50)
-    }
-
-    func testMediumDiffersFromLight() {
-        let inputs = [0.5, 0.0, 0.6, 0.3, 0.1, 0.0, 0.0, 0.0, 0.4, 0.7, -0.2]
-        var light = MiniBrain()
-        var medium = MediumBrain()
-        for _ in 0..<50 {
-            _ = light.step(inputs)
-            _ = medium.step(inputs)
-        }
-        XCTAssertNotEqual(light.hidden, medium.hidden)
+    func testSkinsHaveDistinctBodyLengths() {
+        let counts = Set(WormSkin.allCases.map(\.segments))
+        XCTAssertEqual(counts.count, WormSkin.allCases.count)
     }
 
     func testRealBrainLoadsRealGraph() throws {

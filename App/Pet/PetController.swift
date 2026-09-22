@@ -172,8 +172,6 @@ final class PetController: NSObject {
         switch id {
         case .light:
             return .light(MiniBrain())
-        case .medium:
-            return .medium(MediumBrain())
         case .real:
             if let graph, let brain = try? RealBrain(graph: graph) {
                 return .real(brain)
