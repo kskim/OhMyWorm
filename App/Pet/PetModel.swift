@@ -240,13 +240,17 @@ struct PetModel: Sendable {
         } else {
             wallPoint = CGPoint(x: head.x, y: bounds.maxY)
         }
-        let wallRange = max(limits.wallMargin * 2.5, 1)
+        // Fixed lookahead so the brains see walls early and steer away.
+        let wallRange: CGFloat = 140
         let wallNear = max(0, 1 - wallDist / wallRange)
         inputs[MiniBrain.Sensor.wallNear.rawValue] = wallNear
         if wallNear > 0 {
             let wallAngle = atan2(wallPoint.y - head.y, wallPoint.x - head.x) - heading
-            inputs[MiniBrain.Sensor.wallLeft.rawValue] = max(0, sin(wallAngle)) * wallNear
-            inputs[MiniBrain.Sensor.wallRight.rawValue] = max(0, -sin(wallAngle)) * wallNear
+            // Gate steering by approach: cruising parallel to a wall must
+            // not push the worm away, or it could never hug edges.
+            let lateral = wallNear * max(0, cos(wallAngle))
+            inputs[MiniBrain.Sensor.wallLeft.rawValue] = max(0, sin(wallAngle)) * lateral
+            inputs[MiniBrain.Sensor.wallRight.rawValue] = max(0, -sin(wallAngle)) * lateral
         }
 
         inputs[MiniBrain.Sensor.hunger.rawValue] = 1 - satiety / 100
@@ -294,11 +298,29 @@ struct PetModel: Sendable {
         head.x += cos(heading) * speed * CGFloat(dt)
         head.y += sin(heading) * speed * CGFloat(dt)
         let bounds = limits.bounds.insetBy(dx: limits.wallMargin, dy: limits.wallMargin)
-        if head.x < bounds.minX { head.x = bounds.minX; heading = Double.pi - heading }
-        if head.x > bounds.maxX { head.x = bounds.maxX; heading = Double.pi - heading }
-        if head.y < bounds.minY { head.y = bounds.minY; heading = -heading }
-        if head.y > bounds.maxY { head.y = bounds.maxY; heading = -heading }
+        // Slide along walls instead of bouncing: keep the tangential
+        // direction, drop the inward one. Brains steer away before this.
+        if head.x < bounds.minX || head.x > bounds.maxX {
+            head.x = min(max(head.x, bounds.minX), bounds.maxX)
+            heading = Self.tangentAngle(flow: sin(heading), position: head.y, middle: bounds.midY, axisAngle: .pi / 2)
+        }
+        if head.y < bounds.minY || head.y > bounds.maxY {
+            head.y = min(max(head.y, bounds.minY), bounds.maxY)
+            heading = Self.tangentAngle(flow: cos(heading), position: head.x, middle: bounds.midX, axisAngle: 0)
+        }
         wigglePhase += dt * (4 + Double(speed) / 25)
+    }
+
+    /// Heading tangent to a wall: preserves the current direction of travel
+    /// along it, deflects toward the center on head-on contact.
+    private static func tangentAngle(flow: Double, position: CGFloat, middle: CGFloat, axisAngle: Double) -> Double {
+        let sign: Double
+        if abs(flow) < 0.2 {
+            sign = position < middle ? 1 : -1
+        } else {
+            sign = flow > 0 ? 1 : -1
+        }
+        return axisAngle + (sign > 0 ? 0 : .pi)
     }
 
     private mutating func pushTrail() {

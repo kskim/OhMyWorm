@@ -99,6 +99,33 @@ final class PetModelTests: XCTestCase {
         XCTAssertFalse(model.hitTest(CGPoint(x: 100, y: 100), radius: 10))
     }
 
+    func testWallContactSlidesInsteadOfBouncing() {
+        var (model, limits) = makeModel()
+        model.head = CGPoint(x: limits.bounds.minX + 0.5, y: 450)
+        model.heading = .pi
+        for _ in 0..<10 {
+            model.update(dt: 1.0 / 30.0, limits: limits)
+            if model.head.x <= limits.bounds.minX + 0.001 { break }
+        }
+        XCTAssertEqual(model.head.x, limits.bounds.minX, accuracy: 0.001)
+        // Sliding along the wall means moving vertically, not reflecting.
+        XCTAssertGreaterThan(abs(sin(model.heading)), 0.9)
+    }
+
+    func testWallSensorsIgnoreParallelCruising() {
+        var (model, limits) = makeModel()
+        model.head = CGPoint(x: 60, y: 450)
+        model.heading = .pi / 2
+        let parallel = model.sensors(limits: limits)
+        XCTAssertGreaterThan(parallel[MiniBrain.Sensor.wallNear.rawValue], 0.3)
+        XCTAssertEqual(parallel[MiniBrain.Sensor.wallLeft.rawValue], 0, accuracy: 0.05)
+        XCTAssertEqual(parallel[MiniBrain.Sensor.wallRight.rawValue], 0, accuracy: 0.05)
+
+        model.heading = .pi - 0.3
+        let approaching = model.sensors(limits: limits)
+        XCTAssertGreaterThan(approaching[MiniBrain.Sensor.wallLeft.rawValue], 0.05)
+    }
+
     func testBrainOutputBounds() {
         var brain = MiniBrain()
         for _ in 0..<200 {
