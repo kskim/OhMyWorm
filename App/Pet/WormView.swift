@@ -36,8 +36,7 @@ struct WormView: View {
     }
 
     private func drawFood(at point: CGPoint, context: inout GraphicsContext) {
-        context.fill(Circle().path(in: CGRect(x: point.x - 9, y: point.y - 9, width: 18, height: 18)), with: .color(.green))
-        context.fill(Circle().path(in: CGRect(x: point.x - 5, y: point.y - 6, width: 6, height: 6)), with: .color(.white.opacity(0.5)))
+        context.draw(Text("🍎").font(.system(size: 22)), at: point)
     }
 
     private static let bodyScale = 0.64

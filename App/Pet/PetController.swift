@@ -19,9 +19,6 @@ final class PetController: NSObject {
     private(set) var viewOrigin: CGPoint = .zero
     private(set) var viewSize: CGSize = .zero
 
-    /// Called with a screen point when the worm is right-clicked.
-    var onRequestMenu: ((CGPoint) -> Void)?
-
     private var screen: NSScreen
     private var panel: DesktopPanel?
     private var timer: Timer?
@@ -75,7 +72,7 @@ final class PetController: NSObject {
         timer.tolerance = 0.005
         self.timer = timer
         if let monitor = NSEvent.addGlobalMonitorForEvents(
-            matching: [.leftMouseDown, .leftMouseDragged, .leftMouseUp, .rightMouseDown],
+            matching: [.leftMouseDown, .leftMouseDragged, .leftMouseUp],
             handler: { [weak self] event in
                 let type = event.type
                 let location = NSEvent.mouseLocation
@@ -211,8 +208,6 @@ final class PetController: NSObject {
             if model.carried { model.carryTarget = point }
         case .leftMouseUp:
             if model.carried { model.setCarried(false, target: point) }
-        case .rightMouseDown:
-            if model.hitTest(point, radius: 44) { onRequestMenu?(point) }
         default:
             break
         }

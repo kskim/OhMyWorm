@@ -16,7 +16,6 @@ struct OhMyWormApp: App {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var controller: PetController?
     private var statusItem: NSStatusItem?
-    private var menu: NSMenu?
     private let menuDelegate = PetMenuDelegate()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -25,13 +24,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         menuDelegate.controller = controller
         let menu = PetMenu.make(controller: controller, delegate: menuDelegate)
-        self.menu = menu
         let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         statusItem.button?.title = "🐛"
         statusItem.menu = menu
         self.statusItem = statusItem
 
-        controller.onRequestMenu = { [weak self] _ in self?.showMenu() }
         controller.start()
         self.controller = controller
 
@@ -47,11 +44,5 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard let screen = NSScreen.main ?? NSScreen.screens.first,
               let controller else { return }
         controller.refit(screen: screen)
-    }
-
-    private func showMenu() {
-        guard let menu else { return }
-        NSApp.activate(ignoringOtherApps: true)
-        menu.popUp(positioning: nil, at: NSEvent.mouseLocation, in: nil)
     }
 }
