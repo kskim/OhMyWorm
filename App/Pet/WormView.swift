@@ -27,14 +27,6 @@ struct WormView: View {
         }
         drawWorm(model: model, size: size, context: &context)
         drawParticles(model: model, size: size, context: &context)
-        if model.satiety < 25, !model.isEating {
-            let head = convert(model.head, size: size)
-            let bob = sin(model.time * 3) * 3
-            context.draw(
-                Text("🍎").font(.system(size: 17)),
-                at: CGPoint(x: head.x + 22, y: head.y - 24 + bob)
-            )
-        }
         if controller.paused {
             context.draw(
                 Text("일시정지됨").font(.title3).foregroundColor(.gray),
@@ -49,18 +41,18 @@ struct WormView: View {
     }
 
     private func drawWorm(model: PetModel, size: CGSize, context: inout GraphicsContext) {
-        let points = model.bodyPoints().map { convert($0, size: size) }
+        let points = model.bodyPoints(spacing: 6.4).map { convert($0, size: size) }
         let colors = model.skin.colors
         for index in points.indices.reversed() {
             let t = Double(index) / Double(max(points.count - 1, 1))
-            let radius = 9 - 3.5 * t
+            let radius = (9 - 3.5 * t) * 0.8
             var center = points[index]
             if index + 1 < points.count {
                 let next = points[index + 1]
                 let dx = center.x - next.x
                 let dy = center.y - next.y
                 let len = max((dx * dx + dy * dy).squareRoot(), 0.001)
-                let sway = sin(model.wigglePhase - Double(index) * 0.55) * (1.6 + Double(index) * 0.22)
+                let sway = sin(model.wigglePhase - Double(index) * 0.55) * (1.3 + Double(index) * 0.18)
                 center.x += -dy / len * sway
                 center.y += dx / len * sway
             }
@@ -76,22 +68,22 @@ struct WormView: View {
         let side = CGVector(dx: -forward.dy, dy: forward.dx)
         for sign in [-1.0, 1.0] {
             let eye = CGPoint(
-                x: head.x + forward.dx * 6 + side.dx * 5.5 * sign,
-                y: head.y + forward.dy * 6 + side.dy * 5.5 * sign
+                x: head.x + forward.dx * 4.8 + side.dx * 4.4 * sign,
+                y: head.y + forward.dy * 4.8 + side.dy * 4.4 * sign
             )
-            context.fill(Circle().path(in: CGRect(x: eye.x - 3.2, y: eye.y - 3.2, width: 6.4, height: 6.4)), with: .color(.white))
-            let pupil = CGPoint(x: eye.x + forward.dx * 1.2, y: eye.y + forward.dy * 1.2)
-            context.fill(Circle().path(in: CGRect(x: pupil.x - 1.6, y: pupil.y - 1.6, width: 3.2, height: 3.2)), with: .color(.black))
+            context.fill(Circle().path(in: CGRect(x: eye.x - 2.6, y: eye.y - 2.6, width: 5.2, height: 5.2)), with: .color(.white))
+            let pupil = CGPoint(x: eye.x + forward.dx * 1.0, y: eye.y + forward.dy * 1.0)
+            context.fill(Circle().path(in: CGRect(x: pupil.x - 1.3, y: pupil.y - 1.3, width: 2.6, height: 2.6)), with: .color(.black))
         }
-        let mouth = CGPoint(x: head.x + forward.dx * 10, y: head.y + forward.dy * 10)
+        let mouth = CGPoint(x: head.x + forward.dx * 8, y: head.y + forward.dy * 8)
         if model.isEating {
-            context.fill(Circle().path(in: CGRect(x: mouth.x - 2, y: mouth.y - 2, width: 4, height: 4)), with: .color(.black.opacity(0.7)))
+            context.fill(Circle().path(in: CGRect(x: mouth.x - 1.6, y: mouth.y - 1.6, width: 3.2, height: 3.2)), with: .color(.black.opacity(0.7)))
         } else if model.mood >= 50 || model.isPetted {
             var path = Path()
-            path.move(to: CGPoint(x: mouth.x - 3.5, y: mouth.y - 1))
+            path.move(to: CGPoint(x: mouth.x - 2.8, y: mouth.y - 1))
             path.addQuadCurve(
-                to: CGPoint(x: mouth.x + 3.5, y: mouth.y - 1),
-                control: CGPoint(x: mouth.x, y: mouth.y + 3.5)
+                to: CGPoint(x: mouth.x + 2.8, y: mouth.y - 1),
+                control: CGPoint(x: mouth.x, y: mouth.y + 2.8)
             )
             context.stroke(path, with: .color(.black.opacity(0.7)), lineWidth: 1.4)
         }

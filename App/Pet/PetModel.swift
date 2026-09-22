@@ -153,7 +153,7 @@ struct PetModel: Sendable {
         return points
     }
 
-    func hitTest(_ point: CGPoint, radius: CGFloat = 26) -> Bool {
+    func hitTest(_ point: CGPoint, radius: CGFloat = 21) -> Bool {
         if distance(head, point) <= radius { return true }
         for anchor in trail.stride(by: 3) {
             if distance(anchor, point) <= radius { return true }
