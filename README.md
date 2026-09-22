@@ -13,8 +13,8 @@ app: no windows, no settings pages, no accounts.
 Inspired by the *C. elegans* connectome (예쁜꼬마선충, "the beautiful
 little worm").
 
-The Light brain is a hand-wired 11→6→2 network that senses food, walls,
-and hunger and decides where to crawl next. The Real brain goes all the
+The Light brain is a hand-wired 13→6→2 network that senses food, walls,
+your cursor, and hunger and decides where to crawl next. The Real brain goes all the
 way: the actual 302-neuron connectome, a 95-muscle layer, and weathervane
 steering executed through real motor neurons.
 
@@ -23,18 +23,20 @@ steering executed through real motor neurons.
 - **Desktop pet** — lives on a transparent overlay that ignores your clicks,
   so everything passes through to your apps except touches on the worm itself
 - **Neural locomotion** — a neural network turns sensory input into steering,
-  with a bias toward screen edges. Fully deterministic: same inputs, same
-  path, every time
+  with a bias toward screen edges. It also shies away from your cursor.
+  Fully deterministic: same inputs, same path, every time
 - **Two brains** — Light (hand-wired mini net) and Real (302 neurons +
   muscles + klinotaxis steering). Switch from the menu
 - **Just enough pet** — two stats (satiety, mood) and three things to do:
-  - 🍎 **Feed** — food drops nearby and the worm goes to find it
+  - 🍎 **Feed** — a random fruit drops nearby and the worm goes to find it.
+    Starve it to zero and one appears on its own
   - ❤️ **Pet** — click the worm, or drag to carry it around
-  - 🎨 **Skins** — 4 looks (Classic, Berry, Honey, Ghost), each with its own
-    body shape, pattern, and face. Your pick sticks around between launches
+  - 🎨 **Skins** — 3 looks (C. elegans, Dragon, Rattlesnake), each with
+    its own body shape, pattern, and face. Your pick sticks around between
+    launches
 - **System-aware** — speeds up with CPU load, shrinks as the battery drains,
   shorter tail off-charger
-- **Lightweight** — about 3–5% CPU and 100 MB RAM on an Apple M4 Pro
+- **Lightweight** — about 5–8% CPU and 100 MB RAM on an Apple M4 Pro
   (Release, Real engine; lighter on Light)
 
 ## Requirements
@@ -70,15 +72,16 @@ dock, and it never opens a window. That's on purpose.
 
 | Action | How |
 | --- | --- |
-| Feed | 🐛 menu → 밥주기 |
+| Feed | 🐛 menu → Feed |
 | Pet | Left-click the worm, or drag it somewhere |
-| Change skin | 🐛 menu → 스킨 변경 |
-| Switch engine | 🐛 menu → 엔진 변경 |
-| Pause / resume | 🐛 menu → 일시정지 |
-| Quit | 🐛 menu → 종료 |
+| Change skin | 🐛 menu → Change Skin |
+| Switch engine | 🐛 menu → Change Engine |
+| Pause / resume | 🐛 menu → Pause |
+| Quit | 🐛 menu → Quit |
 
-The 🐛 menu shows the worm's current stats (포만감 = satiety, 기분 = mood)
-at the top.
+The 🐛 menu shows the worm's current stats (satiety, mood) at the top. The
+menu follows your system language: Korean on Korean systems, English
+everywhere else.
 
 ## Project layout
 
@@ -88,15 +91,16 @@ App/
   Pet/
     PetController.swift  game loop, input, actions
     PetModel.swift         pure game state (no UI, fully tested)
-    MiniBrain.swift        Light: hand-wired 11→6→2 network
+    MiniBrain.swift        Light: hand-wired 13→6→2 network
     Real/                  Real: 302-neuron engine + NMJ muscles + steering
     LocomotionEngine.swift engine protocol + selector
     DesktopPanel.swift   click-through overlay that follows the worm
     WormView.swift       Canvas rendering
     PetMenu.swift        the one and only menu
+    L10n.swift           Korean/English strings from system language
   Resources/connectome.json bundled wiring data (see docs)
   Assets.xcassets       app icon set
-Tests/OhMyWormTests/    41 unit tests (brains, model, controller, vitals)
+Tests/OhMyWormTests/    50 unit tests (brains, model, controller, vitals)
 Tools/GenerateIcon.swift regenerates the icon set
 docs/architecture.md    design notes
 ```
@@ -107,7 +111,7 @@ docs/architecture.md    design notes
 
 - Only the main display is supported for now; the worm moves over cleanly if
   your screen setup changes.
-- The UI speaks Korean at the moment. Localization help welcome.
+- The menu is bilingual (Korean/English) and follows the system language.
 
 ## How it was made
 
