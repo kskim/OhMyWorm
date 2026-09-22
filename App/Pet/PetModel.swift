@@ -4,18 +4,16 @@ import Foundation
 
 enum WormSkin: String, CaseIterable, Identifiable, Sendable {
     case classic
-    case berry
-    case honey
-    case ghost
+    case dragon
+    case rattlesnake
 
     var id: String { rawValue }
 
     var displayName: String {
         switch self {
-        case .classic: return "기본"
-        case .berry: return "베리"
-        case .honey: return "허니"
-        case .ghost: return "고스트"
+        case .classic: return L10n.text("예쁜꼬마선충", "C. elegans")
+        case .dragon: return L10n.text("드레곤", "Dragon")
+        case .rattlesnake: return L10n.text("방울뱀", "Rattlesnake")
         }
     }
 
@@ -29,9 +27,8 @@ enum WormSkin: String, CaseIterable, Identifiable, Sendable {
     var segments: Int {
         switch self {
         case .classic: return 16
-        case .berry: return 14
-        case .honey: return 12
-        case .ghost: return 20
+        case .dragon: return 15
+        case .rattlesnake: return 17
         }
     }
 }

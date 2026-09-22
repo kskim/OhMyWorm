@@ -46,6 +46,10 @@ struct WormView: View {
         let points = model.bodyPoints(count: model.tailSegments, spacing: 8 * k).map { convert($0, size: size) }
         let style = model.skin.style
         context.opacity = style.alpha
+        if style.wings {
+            drawWings(points: points, phase: model.wigglePhase, k: k,
+                      color: style.head.interpolated(to: style.tail, amount: 0.2), context: &context)
+        }
         for index in points.indices.reversed() {
             let t = Double(index) / Double(max(points.count - 1, 1))
             let radius = (style.headRadius + (style.tailRadius - style.headRadius) * t) * k
@@ -61,13 +65,77 @@ struct WormView: View {
             }
             let rect = CGRect(x: center.x - radius, y: center.y - radius, width: radius * 2, height: radius * 2)
             var color = style.head.interpolated(to: style.tail, amount: t)
-            if style.striped, (index / 2) % 2 == 1 {
-                color = style.head.mixed(with: RGB(hex: 0xFFFFFF), amount: 0.45)
+            switch style.pattern {
+            case .solid:
+                break
+            case .saddles:
+                if index % 3 == 2 {
+                    color = style.head.mixed(with: RGB(hex: 0x2A1D12), amount: 0.55)
+                }
             }
             context.fill(Circle().path(in: rect), with: .color(color))
         }
+        if style.tailAccessory == .rattle, points.count >= 2 {
+            drawRattle(points: points, k: k, context: &context)
+        }
         drawFace(head: points[0], model: model, size: size, context: &context)
         context.opacity = 1
+    }
+
+    private func drawRattle(points: [CGPoint], k: CGFloat, context: inout GraphicsContext) {
+        let tip = points[points.count - 1]
+        let prev = points[points.count - 2]
+        var dx = tip.x - prev.x
+        var dy = tip.y - prev.y
+        let len = max((dx * dx + dy * dy).squareRoot(), 0.001)
+        dx /= len
+        dy /= len
+        for i in 0..<3 {
+            let center = CGPoint(x: tip.x + dx * CGFloat(i) * 4.5 * k, y: tip.y + dy * CGFloat(i) * 4.5 * k)
+            let radius = (3.2 - Double(i) * 0.6) * k
+            context.fill(
+                Circle().path(in: CGRect(x: center.x - radius, y: center.y - radius, width: radius * 2, height: radius * 2)),
+                with: .color(Color(red: 0.79, green: 0.66, blue: 0.42))
+            )
+        }
+    }
+
+    private func drawWings(points: [CGPoint], phase: Double, k: CGFloat, color: Color, context: inout GraphicsContext) {
+        guard points.count >= 3 else { return }
+        let shoulder = points[1]
+        var fx = points[0].x - points[2].x
+        var fy = points[0].y - points[2].y
+        let len = max((fx * fx + fy * fy).squareRoot(), 0.001)
+        fx /= len
+        fy /= len
+        let sx = -fy
+        let sy = fx
+        let flap = sin(phase * 0.9)
+        for sign: CGFloat in [1, -1] {
+            let elbow = CGPoint(
+                x: shoulder.x + sx * sign * 9 * k - fx * 1 * k,
+                y: shoulder.y + sy * sign * 9 * k - fy * 1 * k
+            )
+            let tip = CGPoint(
+                x: shoulder.x + sx * sign * 17 * k - fx * (5 - flap * 5) * k,
+                y: shoulder.y + sy * sign * 17 * k - fy * (5 - flap * 5) * k
+            )
+            let notch = CGPoint(
+                x: shoulder.x + sx * sign * 8 * k - fx * 7 * k,
+                y: shoulder.y + sy * sign * 8 * k - fy * 7 * k
+            )
+            var wing = Path()
+            wing.move(to: shoulder)
+            wing.addLine(to: elbow)
+            wing.addLine(to: tip)
+            wing.addLine(to: notch)
+            wing.closeSubpath()
+            context.fill(wing, with: .color(color.opacity(0.9)))
+            var bone = Path()
+            bone.move(to: shoulder)
+            bone.addLine(to: tip)
+            context.stroke(bone, with: .color(.black.opacity(0.25)), lineWidth: 1.2)
+        }
     }
 
     private func drawFace(head: CGPoint, model: PetModel, size: CGSize, context: inout GraphicsContext) {
@@ -90,33 +158,39 @@ struct WormView: View {
         switch style.accessory {
         case .none:
             break
-        case .antennae:
+        case .horns:
             for sign in [-1.0, 1.0] {
                 let base = CGPoint(
-                    x: head.x + forward.dx * 4 * k + side.dx * 4 * k * sign,
-                    y: head.y + forward.dy * 4 * k + side.dy * 4 * k * sign
+                    x: head.x - forward.dx * 2 * k + side.dx * 5 * k * sign,
+                    y: head.y - forward.dy * 2 * k + side.dy * 5 * k * sign
                 )
                 let tip = CGPoint(
-                    x: base.x + forward.dx * 9 * k + side.dx * 5 * k * sign,
-                    y: base.y + forward.dy * 9 * k + side.dy * 5 * k * sign
+                    x: base.x - forward.dx * 8 * k + side.dx * 3 * k * sign,
+                    y: base.y - forward.dy * 8 * k + side.dy * 3 * k * sign
                 )
-                var stalk = Path()
-                stalk.move(to: base)
-                stalk.addLine(to: tip)
-                context.stroke(stalk, with: .color(.black.opacity(0.6)), lineWidth: 1.5)
-                context.fill(Circle().path(in: CGRect(x: tip.x - 2 * k, y: tip.y - 2 * k, width: 4 * k, height: 4 * k)), with: .color(style.head.interpolated(to: style.tail, amount: 0.3)))
+                var horn = Path()
+                horn.move(to: CGPoint(x: base.x + side.dx * 2 * k * sign, y: base.y + side.dy * 2 * k * sign))
+                horn.addLine(to: tip)
+                horn.addLine(to: CGPoint(x: base.x - side.dx * 2 * k * sign, y: base.y - side.dy * 2 * k * sign))
+                horn.closeSubpath()
+                context.fill(horn, with: .color(Color(red: 0.93, green: 0.88, blue: 0.74)))
             }
-        case .blush:
-            for sign in [-1.0, 1.0] {
-                let cheek = CGPoint(
-                    x: mouth.x + side.dx * 7 * k * sign - forward.dx * 2 * k,
-                    y: mouth.y + side.dy * 7 * k * sign - forward.dy * 2 * k
-                )
-                context.fill(
-                    Ellipse().path(in: CGRect(x: cheek.x - 2.8 * k, y: cheek.y - 1.8 * k, width: 5.6 * k, height: 3.6 * k)),
-                    with: .color(.pink.opacity(0.7))
-                )
-            }
+        case .tongue:
+            let tip = CGPoint(x: mouth.x + forward.dx * 9 * k, y: mouth.y + forward.dy * 9 * k)
+            var tongue = Path()
+            tongue.move(to: mouth)
+            tongue.addLine(to: tip)
+            tongue.move(to: tip)
+            tongue.addLine(to: CGPoint(
+                x: tip.x + forward.dx * 4.5 * k + side.dx * 2.5 * k,
+                y: tip.y + forward.dy * 4.5 * k + side.dy * 2.5 * k
+            ))
+            tongue.move(to: tip)
+            tongue.addLine(to: CGPoint(
+                x: tip.x + forward.dx * 4.5 * k - side.dx * 2.5 * k,
+                y: tip.y + forward.dy * 4.5 * k - side.dy * 2.5 * k
+            ))
+            context.stroke(tongue, with: .color(.red.opacity(0.85)), lineWidth: 1.6)
         }
         if model.isEating {
             context.fill(Circle().path(in: CGRect(x: mouth.x - 2 * k, y: mouth.y - 2 * k, width: 4 * k, height: 4 * k)), with: .color(.black.opacity(0.7)))
@@ -177,8 +251,18 @@ private struct RGB {
 
 private enum SkinAccessory {
     case none
-    case antennae
-    case blush
+    case horns
+    case tongue
+}
+
+private enum SkinPattern {
+    case solid
+    case saddles
+}
+
+private enum TailAccessory {
+    case none
+    case rattle
 }
 
 private struct SkinStyle {
@@ -186,10 +270,12 @@ private struct SkinStyle {
     var tail: RGB
     var headRadius: Double
     var tailRadius: Double
-    var striped: Bool
+    var pattern: SkinPattern
     var eyeScale: Double
     var alpha: Double
     var accessory: SkinAccessory
+    var tailAccessory: TailAccessory
+    var wings: Bool
 }
 
 private extension WormSkin {
@@ -199,25 +285,22 @@ private extension WormSkin {
             return SkinStyle(
                 head: RGB(hex: 0x58B368), tail: RGB(hex: 0xB7E4A8),
                 headRadius: 9, tailRadius: 5.5,
-                striped: false, eyeScale: 1.0, alpha: 1.0, accessory: .none
+                pattern: .solid, eyeScale: 1.0, alpha: 1.0,
+                accessory: .none, tailAccessory: .none, wings: false
             )
-        case .berry:
+        case .dragon:
             return SkinStyle(
-                head: RGB(hex: 0xE5638C), tail: RGB(hex: 0xFFC9DA),
-                headRadius: 8, tailRadius: 4.5,
-                striped: true, eyeScale: 1.1, alpha: 1.0, accessory: .blush
+                head: RGB(hex: 0xC0392B), tail: RGB(hex: 0xF5B041),
+                headRadius: 9.5, tailRadius: 4.0,
+                pattern: .solid, eyeScale: 1.15, alpha: 1.0,
+                accessory: .horns, tailAccessory: .none, wings: true
             )
-        case .honey:
+        case .rattlesnake:
             return SkinStyle(
-                head: RGB(hex: 0xD99A3D), tail: RGB(hex: 0xF6DEA8),
-                headRadius: 10.5, tailRadius: 7,
-                striped: false, eyeScale: 0.9, alpha: 1.0, accessory: .antennae
-            )
-        case .ghost:
-            return SkinStyle(
-                head: RGB(hex: 0x6FD3D3), tail: RGB(hex: 0xD9F7F7),
-                headRadius: 7.5, tailRadius: 4.5,
-                striped: false, eyeScale: 1.35, alpha: 0.7, accessory: .none
+                head: RGB(hex: 0xA67C52), tail: RGB(hex: 0xE0C896),
+                headRadius: 8.5, tailRadius: 5.0,
+                pattern: .saddles, eyeScale: 1.0, alpha: 1.0,
+                accessory: .tongue, tailAccessory: .rattle, wings: false
             )
         }
     }

@@ -29,10 +29,10 @@ final class PetControllerTests: XCTestCase {
             }
         }
         let item = NSMenuItem()
-        item.representedObject = WormSkin.honey.rawValue
+        item.representedObject = WormSkin.dragon.rawValue
         controller.setSkin(item)
-        XCTAssertEqual(controller.model.skin, .honey)
-        XCTAssertEqual(UserDefaults.standard.string(forKey: "worm.skin"), WormSkin.honey.rawValue)
+        XCTAssertEqual(controller.model.skin, .dragon)
+        XCTAssertEqual(UserDefaults.standard.string(forKey: "worm.skin"), WormSkin.dragon.rawValue)
     }
 
     func testTogglePauseFlips() {
