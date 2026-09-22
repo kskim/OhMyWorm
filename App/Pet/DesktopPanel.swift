@@ -1,6 +1,6 @@
 import AppKit
 
-/// Small transparent overlay that tracks the worm. It never takes clicks;
+/// Fullscreen transparent overlay. It never moves and never takes clicks;
 /// interaction is observed through a global event monitor instead.
 final class DesktopPanel: NSPanel {
     init(contentView: NSView, frame: CGRect) {

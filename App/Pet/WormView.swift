@@ -20,10 +20,16 @@ struct WormView: View {
         )
     }
 
+    /// Emoji are color bitmaps: fractional positions make them shimmer
+    /// while the panel glides, so text draws snap to whole points.
+    private func snap(_ point: CGPoint) -> CGPoint {
+        CGPoint(x: round(point.x), y: round(point.y))
+    }
+
     private func draw(context: inout GraphicsContext, size: CGSize) {
         let model = controller.model
         if let food = model.food {
-            drawFood(kind: food.kind, at: convert(food.position, size: size), context: &context)
+            drawFood(kind: food.kind, at: snap(convert(food.position, size: size)), context: &context)
         }
         drawWorm(model: model, size: size, context: &context)
         drawParticles(model: model, size: size, context: &context)
@@ -215,7 +221,7 @@ struct WormView: View {
                 context.opacity = alpha
                 context.draw(
                     Text("❤️").font(.system(size: 12 * s)),
-                    at: CGPoint(x: point.x, y: point.y - particle.age * 34)
+                    at: snap(CGPoint(x: point.x, y: point.y - particle.age * 34))
                 )
                 context.opacity = 1
             case .crumb:

@@ -74,18 +74,18 @@ final class PetControllerTests: XCTestCase {
         XCTAssertFalse(controller.paused)
     }
 
-    func testContentRectCoversWormAndFood() {
+    func testPanelCoversWormAndFood() {
         guard let controller = makeController() else { return }
         controller.dropFood()
-        let rect = controller.contentRect()
-        XCTAssertTrue(rect.contains(controller.model.head))
+        let panel = CGRect(origin: controller.viewOrigin, size: controller.viewSize)
+        XCTAssertTrue(panel.contains(controller.model.head))
         if let food = controller.model.food {
-            XCTAssertTrue(rect.contains(food.position))
+            XCTAssertTrue(panel.contains(food.position))
         } else {
             XCTFail("dropFood must place food")
         }
         if let screen = NSScreen.main ?? NSScreen.screens.first {
-            XCTAssertTrue(screen.frame.contains(rect))
+            XCTAssertEqual(panel, screen.frame)
         }
     }
 

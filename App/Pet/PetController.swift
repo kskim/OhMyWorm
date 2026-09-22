@@ -14,8 +14,9 @@ final class PetController: NSObject {
     var limits: PetModel.Limits
     var paused = false
 
-    /// Current overlay frame in screen coordinates. The panel tracks the
-    /// worm instead of covering the whole screen, to keep compositing cheap.
+    /// Current overlay frame in screen coordinates. The panel covers the
+    /// whole screen and never moves: a following panel steps at the 20 Hz
+    /// tick rate, which reads as trembling on static objects like food.
     private(set) var viewOrigin: CGPoint = .zero
     private(set) var viewSize: CGSize = .zero
 
@@ -64,10 +65,9 @@ final class PetController: NSObject {
             UserDefaults.standard.set(engineID.rawValue, forKey: Self.engineKey)
         }
         self.model.brain = Self.makeBrain(engineID, graph: engineID == .real ? loadRealGraph() : nil)
-        let frame = contentRect()
-        viewOrigin = frame.origin
-        viewSize = frame.size
-        panel = DesktopPanel(contentView: NSHostingView(rootView: WormView(controller: self)), frame: frame)
+        viewOrigin = screen.frame.origin
+        viewSize = screen.frame.size
+        panel = DesktopPanel(contentView: NSHostingView(rootView: WormView(controller: self)), frame: screen.frame)
     }
 
     func start() {
@@ -107,31 +107,12 @@ final class PetController: NSObject {
         let inset = limits.bounds.insetBy(dx: limits.wallMargin, dy: limits.wallMargin)
         model.head.x = min(max(model.head.x, inset.minX), inset.maxX)
         model.head.y = min(max(model.head.y, inset.minY), inset.maxY)
-        if let food = model.food, !limits.bounds.contains(food) {
+        if let food = model.food, !limits.bounds.contains(food.position) {
             model.food = nil
         }
-        movePanel(force: true)
-    }
-
-    /// Fixed-size panel centered on the worm. Fixed size avoids per-frame
-    /// layer reallocations; only the origin moves.
-    func contentRect() -> CGRect {
-        let frame = screen.frame
-        let width = min(760, frame.width)
-        let height = min(760, frame.height)
-        let x = min(max(model.head.x - width / 2, frame.minX), frame.maxX - width)
-        let y = min(max(model.head.y - height / 2, frame.minY), frame.maxY - height)
-        return CGRect(x: x, y: y, width: width, height: height)
-    }
-
-    private func movePanel(force: Bool = false) {
-        let frame = contentRect()
-        let moved = abs(frame.origin.x - viewOrigin.x) > 0.5 || abs(frame.origin.y - viewOrigin.y) > 0.5
-        let resized = abs(frame.width - viewSize.width) > 1 || abs(frame.height - viewSize.height) > 1
-        guard force || moved || resized else { return }
-        viewOrigin = frame.origin
-        if resized { viewSize = frame.size }
-        panel?.moveTo(frame)
+        viewOrigin = screen.frame.origin
+        viewSize = screen.frame.size
+        panel?.moveTo(screen.frame)
     }
 
     // MARK: - Menu actions
@@ -191,7 +172,6 @@ final class PetController: NSObject {
         }
         model.cursor = NSEvent.mouseLocation
         model.update(dt: Self.tickInterval, limits: limits)
-        movePanel()
     }
 
     private func handle(type: NSEvent.EventType, at point: CGPoint) {
