@@ -65,6 +65,20 @@ final class PetControllerTests: XCTestCase {
         XCTAssertEqual(UserDefaults.standard.string(forKey: "worm.skin"), WormSkin.dragon.rawValue)
     }
 
+    func testMenuLocalizesByLanguage() {
+        guard let controller = makeController() else { return }
+        L10n.forceKorean = false
+        defer { L10n.forceKorean = nil }
+        XCTAssertEqual(WormSkin.classic.displayName, "C. elegans")
+        XCTAssertEqual(EngineID.real.displayName, "Real")
+        let menu = PetMenu.make(controller: controller, delegate: PetMenuDelegate())
+        XCTAssertTrue(menu.items.map(\.title).contains("Feed"))
+        L10n.forceKorean = true
+        XCTAssertEqual(WormSkin.classic.displayName, "예쁜꼬마선충")
+        PetMenu.rebuild(menu, controller: controller)
+        XCTAssertTrue(menu.items.map(\.title).contains("밥주기"))
+    }
+
     func testTogglePauseFlips() {
         guard let controller = makeController() else { return }
         XCTAssertFalse(controller.paused)
@@ -121,6 +135,8 @@ final class PetControllerTests: XCTestCase {
 
     func testStatusTextReflectsModel() {
         guard let controller = makeController() else { return }
+        L10n.forceKorean = true
+        defer { L10n.forceKorean = nil }
         controller.model.satiety = 72
         controller.model.mood = 85
         XCTAssertEqual(controller.model.statusText, "포만감 72 · 기분 85")

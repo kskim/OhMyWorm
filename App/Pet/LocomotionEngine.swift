@@ -15,8 +15,8 @@ enum EngineID: String, CaseIterable, Identifiable, Sendable {
 
     var displayName: String {
         switch self {
-        case .light: return "라이트"
-        case .real: return "리얼"
+        case .light: return L10n.text("라이트", "Light")
+        case .real: return L10n.text("리얼", "Real")
         }
     }
 }

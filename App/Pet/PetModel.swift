@@ -103,7 +103,7 @@ struct PetModel: Sendable {
     var isPetted: Bool { petTimer > 0 }
 
     var statusText: String {
-        "포만감 \(Int(satiety)) · 기분 \(Int(mood))"
+        L10n.text("포만감 \(Int(satiety)) · 기분 \(Int(mood))", "Satiety \(Int(satiety)) · Mood \(Int(mood))")
     }
 
     /// Neuromodulation from system state: busy CPU speeds the worm up.

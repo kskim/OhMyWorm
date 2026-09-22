@@ -1,6 +1,6 @@
 import AppKit
 
-/// The single menu for the status item and worm right-click.
+/// The single menu, hosted by the status item.
 /// Rebuilt on every open so stats and pause state stay fresh.
 @MainActor final class PetMenuDelegate: NSObject, NSMenuDelegate {
     weak var controller: PetController?
@@ -25,11 +25,11 @@ import AppKit
         menu.addItem(info)
         menu.addItem(.separator())
 
-        let feed = NSMenuItem(title: "밥주기", action: #selector(PetController.dropFood), keyEquivalent: "")
+        let feed = NSMenuItem(title: L10n.text("밥주기", "Feed"), action: #selector(PetController.dropFood), keyEquivalent: "")
         feed.target = controller
         menu.addItem(feed)
 
-        let skins = NSMenuItem(title: "스킨 변경", action: nil, keyEquivalent: "")
+        let skins = NSMenuItem(title: L10n.text("스킨 변경", "Change Skin"), action: nil, keyEquivalent: "")
         let submenu = NSMenu()
         for skin in WormSkin.allCases {
             let item = NSMenuItem(title: skin.displayName, action: #selector(PetController.setSkin(_:)), keyEquivalent: "")
@@ -41,7 +41,7 @@ import AppKit
         skins.submenu = submenu
         menu.addItem(skins)
 
-        let engines = NSMenuItem(title: "엔진 변경", action: nil, keyEquivalent: "")
+        let engines = NSMenuItem(title: L10n.text("엔진 변경", "Change Engine"), action: nil, keyEquivalent: "")
         let engineSubmenu = NSMenu()
         for id in EngineID.allCases {
             let item = NSMenuItem(title: id.displayName, action: #selector(PetController.setEngine(_:)), keyEquivalent: "")
@@ -54,12 +54,14 @@ import AppKit
         menu.addItem(engines)
         menu.addItem(.separator())
 
-        let pauseTitle = controller.paused ? "계속하기" : "일시정지"
+        let pauseTitle = controller.paused
+            ? L10n.text("계속하기", "Resume")
+            : L10n.text("일시정지", "Pause")
         let pause = NSMenuItem(title: pauseTitle, action: #selector(PetController.togglePause), keyEquivalent: "")
         pause.target = controller
         menu.addItem(pause)
 
-        let quit = NSMenuItem(title: "종료", action: #selector(PetController.quitApp), keyEquivalent: "")
+        let quit = NSMenuItem(title: L10n.text("종료", "Quit"), action: #selector(PetController.quitApp), keyEquivalent: "")
         quit.target = controller
         menu.addItem(quit)
     }

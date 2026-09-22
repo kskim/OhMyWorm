@@ -35,7 +35,7 @@ struct WormView: View {
         drawParticles(model: model, size: size, context: &context)
         if controller.paused {
             context.draw(
-                Text("일시정지됨").font(.title3).foregroundColor(.gray),
+                Text(L10n.text("일시정지됨", "Paused")).font(.title3).foregroundColor(.gray),
                 at: CGPoint(x: size.width / 2, y: size.height / 2)
             )
         }
