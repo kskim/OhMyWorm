@@ -22,6 +22,8 @@ senses food, walls, and hunger and decides where to crawl next.
 - **Neural locomotion** — the mini network turns sensory input into steering,
   with a bias toward screen edges. Fully deterministic: same inputs, same
   path, every time
+- **Three brains** — Light (hand-wired mini net), Medium (connectome-scaled
+  weights), Real (302 neurons + muscles + klinotaxis steering). Switch from the menu
 - **Just enough pet** — two stats (satiety, mood) and three things to do:
   - 🍎 **Feed** — food drops nearby and the worm goes to find it
   - ❤️ **Pet** — click the worm, or drag to carry it around
@@ -59,6 +61,7 @@ dock, and it never opens a window. That's on purpose.
 | Feed | 🐛 menu → 밥주기, or right-click the worm → 밥주기 |
 | Pet | Left-click the worm, or drag it somewhere |
 | Change skin | 🐛 menu → 스킨 변경 |
+| Switch engine | 🐛 menu → 엔진 변경 |
 | Pause / resume | 🐛 menu → 일시정지 |
 | Quit | 🐛 menu → 종료 |
 
@@ -72,12 +75,15 @@ App/
   OhMyWormApp.swift      agent entry point, status item
   Pet/
     PetController.swift  game loop, input, actions
-    PetModel.swift       pure game state (no UI, fully tested)
-    MiniBrain.swift      the miniature recurrent network
+    PetModel.swift         pure game state (no UI, fully tested)
+    MiniBrain.swift        Light: hand-wired 11→6→2 network
+    MediumBrain.swift      Medium: connectome-scaled weights
+    Real/                  Real: real 302-neuron engine + adapter
+    LocomotionEngine.swift engine protocol + selector
     DesktopPanel.swift   click-through overlay that follows the worm
     WormView.swift       Canvas rendering
     PetMenu.swift        the one and only menu
-Tests/OhMyWormTests/    20 unit tests (brain, model, controller, vitals)
+Tests/OhMyWormTests/    30 unit tests (brains, model, controller, vitals)
 docs/architecture.md    design notes
 ```
 

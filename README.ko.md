@@ -19,6 +19,8 @@ macOS용 작은 데스크톱 펫입니다. 지렁이 한 마리가 화면 가장
   뺀 모든 클릭은 아래 앱으로 전달됩니다
 - **신경망 이동** — 작은 신경망이 감각 입력으로 방향을 정합니다. 가장자리를
   선호하고, 입력이 같으면 경로는 항상 같습니다
+- **엔진 3종** — 라이트(미니 신경망), 미디엄(커넥톰 가중치), 리얼(302뉴런+근육+먹이추적
+  풀엔진). 메뉴에서 변경
 - **꼭 필요한 만큼만** — 스탯 2개(포만감, 기분)와 할 일 3가지:
   - 🍎 **밥주기** — 근처에 먹이를 떨어뜨리면 벌레가 찾아가서 먹습니다
   - ❤️ **만지기** — 벌레를 클릭하거나 드래그로 들어 옮기세요
@@ -55,6 +57,7 @@ xcodebuild -project OhMyWorm.xcodeproj -scheme OhMyWorm -configuration Debug tes
 | 밥주기 | 🐛 메뉴 → 밥주기, 또는 벌레 우클릭 → 밥주기 |
 | 만지기 | 벌레 좌클릭, 또는 드래그로 들어 옮기기 |
 | 스킨 변경 | 🐛 메뉴 → 스킨 변경 |
+| 엔진 변경 | 🐛 메뉴 → 엔진 변경 |
 | 일시정지 / 계속 | 🐛 메뉴 → 일시정지 |
 | 종료 | 🐛 메뉴 → 종료 |
 
@@ -68,12 +71,15 @@ App/
   OhMyWormApp.swift      에이전트 진입점, 상태바 아이콘
   Pet/
     PetController.swift  게임 루프, 입력, 액션
-    PetModel.swift       순수 게임 상태 (UI 없음, 테스트됨)
-    MiniBrain.swift      작은 순환 신경망
+    PetModel.swift         순수 게임 상태 (UI 없음, 테스트됨)
+    MiniBrain.swift        라이트: 손설계 11→6→2 신경망
+    MediumBrain.swift      미디엄: 커넥톰 가중치
+    Real/                  리얼: 실제 302뉴런 엔진 + 어댑터
+    LocomotionEngine.swift 엔진 프로토콜 + 선택
     DesktopPanel.swift   벌레를 따라다니는 클릭-스루 오버레이
     WormView.swift       Canvas 렌더링
     PetMenu.swift        하나뿐인 메뉴
-Tests/OhMyWormTests/    유닛 테스트 20개 (신경망, 모델, 컨트롤러, vitals)
+Tests/OhMyWormTests/    유닛 테스트 30개 (엔진, 모델, 컨트롤러, vitals)
 docs/architecture.md    설계 노트 (영문)
 ```
 
