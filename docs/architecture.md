@@ -65,8 +65,9 @@ persisted in `UserDefaults`.
   seed is zeroed (the port default veers +0.18); one-sided input leaves
   motor output near-symmetric, so spatial steering cannot come from the
   rate port itself. Result: finds food in seconds near, ~1 min far/behind,
-  dwells at edges ~75% without food. The bundled `connectome.json` is
-  local-use only until data licensing is resolved.
+  dwells at edges ~75% without food. The bundled `connectome.json` is third-party data (Cook et al. 2019 via
+  OpenWorm ConnectomeToolbox), not MIT code; provenance and terms live in
+  `docs/data-notice.md`.
 
 ## Pet system (minimal)
 

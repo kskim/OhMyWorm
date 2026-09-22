@@ -116,6 +116,6 @@ docs/architecture.md    설계 노트 (영문)
 
 ## 라이선스
 
-아직 LICENSE 파일이 없습니다 (예정: MIT). 붙기 전까지는 공개됐어도
-오픈 라이선스가 아닙니다. 동봉된 커넥톰 데이터의 조건은
-docs/architecture.md를 보세요.
+MIT — [LICENSE](LICENSE)를 보세요. 코드와 문서에 적용됩니다. 동봉된
+`App/Resources/connectome.json`은 MIT 코드가 아니라 제3자 과학 데이터입니다:
+출처, 인용, 이용 조건은 [docs/data-notice.md](docs/data-notice.md)를 보세요.

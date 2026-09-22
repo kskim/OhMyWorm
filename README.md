@@ -120,6 +120,7 @@ the whole way.
 
 ## License
 
-No LICENSE file yet (planned: MIT). The code is public but not under an
-open license until one lands. The bundled connectome data follows its
-upstream terms — see docs/architecture.md.
+MIT — see [LICENSE](LICENSE). That covers the code and docs. The bundled
+`App/Resources/connectome.json` is third-party scientific data, not MIT
+code: see [docs/data-notice.md](docs/data-notice.md) for its provenance,
+citation, and terms.
