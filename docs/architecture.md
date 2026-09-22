@@ -23,6 +23,7 @@ Status item menu -> feed / skin / pause / quit
 | `App/Pet/PetModel.swift` | Pure game state: movement, trail, satiety/mood, food, particles |
 | `App/Pet/MiniBrain.swift` | Hand-wired recurrent network (11 inputs, 6 hidden, 2 outputs) |
 | `App/Pet/DesktopPanel.swift` | Click-through transparent `NSPanel` that follows the worm |
+| `App/Pet/SystemVitals.swift` | CPU/battery sampling via Mach/IOKit, no permissions needed |
 | `App/Pet/WormView.swift` | SwiftUI Canvas rendering: worm, food, hearts, hunger hint |
 | `App/Pet/PetMenu.swift` | Single menu shared by the status item and right-click |
 
@@ -42,6 +43,11 @@ Two stats, `satiety` and `mood` (0–100), decay over ~10 and ~8 minutes.
 Feeding restores satiety, petting restores mood. Low satiety slows the worm;
 low mood dulls it slightly. Three interactions only: feed, pet, change skin
 (4 presets, persisted in `UserDefaults`). No sleep, growth, or evolution.
+
+System vitals (RunCat-style) modulate the network's output: CPU load scales
+speed (0.6x–2.0x), running on battery multiplies 0.75x, and battery level
+scales body size (0.7x–1.0x). Desktops without a battery read as full/AC.
+Vitals resample every 2 seconds.
 
 ## Performance
 
