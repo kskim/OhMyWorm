@@ -37,9 +37,16 @@ final class PetController: NSObject {
         return realGraphCache
     }
 
+    /// Play area: the full frame minus the Dock. The menu bar strip stays
+    /// open (the worm may slip under it); only the Dock side is cut out.
+    /// The Dock never sits at the top, so the top edge always stays full.
+    static func playBounds(frame: CGRect, visible: CGRect) -> CGRect {
+        CGRect(x: visible.minX, y: visible.minY, width: visible.width, height: frame.maxY - visible.minY)
+    }
+
     init(screen: NSScreen) {
         self.screen = screen
-        let bounds = screen.frame
+        let bounds = Self.playBounds(frame: screen.frame, visible: screen.visibleFrame)
         self.limits = PetModel.Limits(bounds: bounds)
         let savedSkin = UserDefaults.standard.string(forKey: Self.skinKey)
             .flatMap(WormSkin.init(rawValue:)) ?? .classic
@@ -96,7 +103,7 @@ final class PetController: NSObject {
 
     func refit(screen: NSScreen) {
         self.screen = screen
-        limits.bounds = screen.frame
+        limits.bounds = Self.playBounds(frame: screen.frame, visible: screen.visibleFrame)
         let inset = limits.bounds.insetBy(dx: limits.wallMargin, dy: limits.wallMargin)
         model.head.x = min(max(model.head.x, inset.minX), inset.maxX)
         model.head.y = min(max(model.head.y, inset.minY), inset.maxY)
@@ -176,6 +183,11 @@ final class PetController: NSObject {
         frame += 1
         if frame % 40 == 1 {
             model.vitals = sampler.sample()
+            // Pick up Dock moves/resizes between screen-change notifications.
+            let fresh = Self.playBounds(frame: screen.frame, visible: screen.visibleFrame)
+            if fresh != limits.bounds {
+                refit(screen: screen)
+            }
         }
         model.cursor = NSEvent.mouseLocation
         model.update(dt: Self.tickInterval, limits: limits)

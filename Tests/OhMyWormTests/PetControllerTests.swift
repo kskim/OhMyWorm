@@ -19,6 +19,25 @@ final class PetControllerTests: XCTestCase {
         XCTAssertGreaterThan(controller.model.time, start)
     }
 
+    func testPlayBoundsExcludesDockButKeepsMenuBarStrip() {
+        let frame = CGRect(x: 0, y: 0, width: 1512, height: 982)
+        // Bottom Dock (80) + menu bar (24).
+        XCTAssertEqual(
+            PetController.playBounds(frame: frame, visible: CGRect(x: 0, y: 80, width: 1512, height: 878)),
+            CGRect(x: 0, y: 80, width: 1512, height: 902)
+        )
+        // Left Dock.
+        XCTAssertEqual(
+            PetController.playBounds(frame: frame, visible: CGRect(x: 80, y: 0, width: 1408, height: 958)),
+            CGRect(x: 80, y: 0, width: 1408, height: 982)
+        )
+        // Auto-hidden Dock: full frame.
+        XCTAssertEqual(
+            PetController.playBounds(frame: frame, visible: CGRect(x: 0, y: 0, width: 1512, height: 958)),
+            frame
+        )
+    }
+
     func testDropFoodPlacesFoodInBounds() {
         guard let controller = makeController() else { return }
         controller.dropFood()
