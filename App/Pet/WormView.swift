@@ -44,7 +44,7 @@ struct WormView: View {
 
     private func drawWorm(model: PetModel, size: CGSize, context: inout GraphicsContext) {
         let k = CGFloat(model.sizeScale) * Self.bodyScale
-        let points = model.bodyPoints(spacing: 8 * k).map { convert($0, size: size) }
+        let points = model.bodyPoints(count: model.tailSegments, spacing: 8 * k).map { convert($0, size: size) }
         let style = model.skin.style
         context.opacity = style.alpha
         for index in points.indices.reversed() {

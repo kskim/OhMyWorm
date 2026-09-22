@@ -87,11 +87,16 @@ struct PetModel: Sendable {
         "포만감 \(Int(satiety)) · 기분 \(Int(mood))"
     }
 
-    /// Neuromodulation from system state: busy CPU speeds the worm up,
-    /// running on battery slows it down.
+    /// Neuromodulation from system state: busy CPU speeds the worm up.
     var speedMultiplier: Double {
         let cpu = min(max(vitals.cpuLoad, 0), 1)
-        return (0.6 + 1.4 * cpu) * (vitals.onBatteryPower ? 0.75 : 1.0)
+        return 0.6 + 1.4 * cpu
+    }
+
+    /// Tail length from power source. Unplugging the charger shortens
+    /// the tail instead of touching speed, so CPU keeps its own channel.
+    var tailSegments: Int {
+        vitals.onBatteryPower ? max(6, skin.segments * 5 / 8) : skin.segments
     }
 
     /// Body scale from battery level. Macs without a battery stay full size.

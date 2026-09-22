@@ -155,12 +155,14 @@ final class PetModelTests: XCTestCase {
         XCTAssertGreaterThan(model.speedMultiplier, idle)
     }
 
-    func testOnBatterySlowerThanCharging() {
+    func testOnBatteryShortensTailWithoutTouchingSpeed() {
         var (model, _) = makeModel()
         model.vitals = SystemVitals(cpuLoad: 0.5, batteryLevel: 0.5, onBatteryPower: false)
-        let charging = model.speedMultiplier
+        let chargingSegments = model.tailSegments
+        let chargingSpeed = model.speedMultiplier
         model.vitals.onBatteryPower = true
-        XCTAssertLessThan(model.speedMultiplier, charging)
+        XCTAssertLessThan(model.tailSegments, chargingSegments)
+        XCTAssertEqual(model.speedMultiplier, chargingSpeed)
     }
 
     func testSizeScaleFollowsBattery() {
