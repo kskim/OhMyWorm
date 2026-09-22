@@ -5,5 +5,5 @@ DerivedData/
 xcuserdata/
 *.xcuserstate
 
-# Legacy local-only data from the retired connectome pipeline
-.local-data/
+# Private agent planning data — never commit
+.omo/
