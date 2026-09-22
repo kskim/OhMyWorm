@@ -25,17 +25,17 @@ steering executed through real motor neurons.
 - **Neural locomotion** — a neural network turns sensory input into steering,
   with a bias toward screen edges. Fully deterministic: same inputs, same
   path, every time
-- **Three brains** — Light (hand-wired mini net), Medium (connectome-scaled
-  weights), Real (302 neurons + muscles + klinotaxis steering). Switch from the menu
+- **Two brains** — Light (hand-wired mini net) and Real (302 neurons +
+  muscles + klinotaxis steering). Switch from the menu
 - **Just enough pet** — two stats (satiety, mood) and three things to do:
   - 🍎 **Feed** — food drops nearby and the worm goes to find it
   - ❤️ **Pet** — click the worm, or drag to carry it around
-  - 🎨 **Skins** — 4 looks (Classic, Berry, Honey, Ghost) that stick around
-    between launches
+  - 🎨 **Skins** — 4 looks (Classic, Berry, Honey, Ghost), each with its own
+    body shape, pattern, and face. Your pick sticks around between launches
 - **System-aware** — speeds up with CPU load, shrinks as the battery drains,
-  lazier off-charger
+  shorter tail off-charger
 - **Lightweight** — about 3–5% CPU and 100 MB RAM on an Apple M4 Pro
-  (Release, Real engine; lighter on Light/Medium)
+  (Release, Real engine; lighter on Light)
 
 ## Requirements
 
@@ -70,15 +70,15 @@ dock, and it never opens a window. That's on purpose.
 
 | Action | How |
 | --- | --- |
-| Feed | 🐛 menu → 밥주기, or right-click the worm → 밥주기 |
+| Feed | 🐛 menu → 밥주기 |
 | Pet | Left-click the worm, or drag it somewhere |
 | Change skin | 🐛 menu → 스킨 변경 |
 | Switch engine | 🐛 menu → 엔진 변경 |
 | Pause / resume | 🐛 menu → 일시정지 |
 | Quit | 🐛 menu → 종료 |
 
-Right-clicking the worm opens the same menu as the status item, with its
-current stats (포만감 = satiety, 기분 = mood) at the top.
+The 🐛 menu shows the worm's current stats (포만감 = satiety, 기분 = mood)
+at the top.
 
 ## Project layout
 
@@ -89,7 +89,6 @@ App/
     PetController.swift  game loop, input, actions
     PetModel.swift         pure game state (no UI, fully tested)
     MiniBrain.swift        Light: hand-wired 11→6→2 network
-    MediumBrain.swift      Medium: connectome-scaled weights
     Real/                  Real: 302-neuron engine + NMJ muscles + steering
     LocomotionEngine.swift engine protocol + selector
     DesktopPanel.swift   click-through overlay that follows the worm

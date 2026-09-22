@@ -2,15 +2,15 @@
 
 OhMyWorm is a desktop pet for macOS: a small worm crawls freely over the
 desktop, driven by a miniature recurrent neural network. No dock icon, no main
-window — just the worm, a `🐛` status item, and a right-click menu.
+window — just the worm and a `🐛` status item holding the only menu.
 
 ## Runtime structure
 
 ```text
-Timer (20 Hz) -> PetController -> PetModel.update -> Brain.step (light/medium/real)
+Timer (20 Hz) -> PetController -> PetModel.update -> Brain.step (light/real)
                                               |-> trail / stats / particles
 PetController -> DesktopPanel (small tracking overlay) -> WormView (Canvas)
-Global mouse monitor -> pet / carry / right-click menu
+Global mouse monitor -> pet / carry (left button only)
 Status item menu -> feed / skin / engine / pause / quit
 ```
 
@@ -22,18 +22,21 @@ Status item menu -> feed / skin / engine / pause / quit
 | `App/Pet/PetController.swift` | Game loop, screen bounds, food/pet/skin/pause actions, global mouse monitor |
 | `App/Pet/PetModel.swift` | Pure game state: movement, trail, satiety/mood, food, particles |
 | `App/Pet/MiniBrain.swift` | Light: hand-wired recurrent network (11 inputs, 6 hidden, 2 outputs) |
-| `App/Pet/MediumBrain.swift` | Medium: same structure, connectome-scaled weights (baked constants) |
 | `App/Pet/Real/` | Real: real 302-neuron engine + NMJ muscles + steering controller + bundled data |
 | `App/Pet/LocomotionEngine.swift` | Engine protocol, `Brain` selector, `EngineID` |
 | `App/Pet/DesktopPanel.swift` | Click-through transparent `NSPanel` that follows the worm |
 | `App/Pet/SystemVitals.swift` | CPU/battery sampling via Mach/IOKit, no permissions needed |
 | `App/Pet/WormView.swift` | SwiftUI Canvas rendering: worm, food, hearts |
-| `App/Pet/PetMenu.swift` | Single menu shared by the status item and right-click |
+| `App/Pet/PetMenu.swift` | The one and only menu, hosted by the status item |
 
-## The three engines
+## The two engines
 
 Every locomotion decision flows through the selected engine; only game
 states (eating, being carried) and the hard wall constraint bypass it.
+Walls are avoided by steering, not bouncing: wall sensors look ahead
+140 pt and steer only by approach (parallel cruising is unpenalized),
+and the last-resort constraint slides along the wall instead of
+reflecting. Bounds are the full screen frame — no margins anywhere.
 All engines are fully deterministic: same inputs, same path. Switching
 engines resets neural state; position and stats are kept. Selection is
 persisted in `UserDefaults`.
@@ -43,10 +46,6 @@ persisted in `UserDefaults`.
   direction/proximity, hunger, two exploratory oscillators) feed six
   recurrent tanh units — food steering, edge steering, wall avoidance,
   approach drive, and an oscillator pair — producing a turn rate and speed.
-- **Medium** (`MediumBrain`) reuses that structure with weights scaled by
-  aggregate statistics of the real connectome (sensory divergence 1.148,
-  motor convergence 0.846, gap fraction 0.216), baked in as constants.
-  It does not simulate the real network.
 - **Real** (`RealBrain`) runs the real 302-neuron recurrent engine plus a
   95-muscle NMJ layer over the real edges. Steering is explicit circuit
   models executed through real anatomy: a klinotaxis (weathervane) bias
@@ -70,11 +69,13 @@ persisted in `UserDefaults`.
 Two stats, `satiety` and `mood` (0–100), decay over ~10 and ~8 minutes.
 Feeding restores satiety, petting restores mood. Low satiety slows the worm;
 low mood dulls it slightly. Three interactions only: feed, pet, change skin
-(4 presets, persisted in `UserDefaults`). No sleep, growth, or evolution.
+(4 presets with distinct body shapes, persisted in `UserDefaults`).
+No sleep, growth, or evolution.
 
 System vitals modulate the network's output: CPU load scales
-speed (0.6x–2.0x), running on battery multiplies 0.75x, and battery level
-scales body size (0.7x–1.0x). Desktops without a battery read as full/AC.
+speed (0.6x–2.0x), running on battery shortens the tail (×5/8 segments),
+and battery level scales body size (0.7x–1.0x). Desktops without a battery
+read as full/AC.
 Vitals resample every 2 seconds.
 
 ## Performance
